@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import api from '../utils/axios.config';
-import { setTokens } from '../utils/store';
+import store from '../utils/store';
 
 const registerIpcHandlers = () => {
 	ipcMain.handle(
@@ -11,7 +11,7 @@ const registerIpcHandlers = () => {
 
 				const { accessToken, refreshToken } = response.data;
 
-				setTokens(accessToken, refreshToken);
+				store.setTokens(accessToken, refreshToken);
 
 				return { success: true, message: null };
 			} catch (error: any) {
@@ -24,6 +24,10 @@ const registerIpcHandlers = () => {
 			}
 		}
 	);
+	ipcMain.handle('auth:logout', async (event, data) => {
+		store.clearTokens();
+		return { success: true, message: null };
+	});
 };
 
 export default registerIpcHandlers;
