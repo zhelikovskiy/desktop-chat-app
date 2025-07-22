@@ -24,9 +24,8 @@ const registerIpcHandlers = () => {
 			}
 		}
 	);
-	ipcMain.handle('auth:logout', async (event, data) => {
+	ipcMain.on('auth:logout', async (event, data) => {
 		store.clearTokens();
-		return { success: true, message: null };
 	});
 };
 

@@ -1,3 +1,17 @@
+<script setup>
+	import { useAuthStore } from '@/stores/auth.store';
+	import { useRouter } from 'vue-router';
+
+	const authStore = useAuthStore();
+	const router = useRouter();
+
+	const handleLogout = () => {
+		authStore.logout();
+		window.ipcRenderer.logout();
+		router.push('/login');
+	}
+</script>
+
 <template>
 	<nav class="navbar">
 		<router-link to="/" class="nav-item">Home</router-link>
@@ -7,13 +21,7 @@
 	</nav>
 </template>
 
-<script setup>
-	const handleLogout = () => {
-
-	}
-</script>
-
-<style scoped> /* Добавляем scoped, чтобы стили применялись только к этому компоненту */
+<style scoped>
 .navbar {
   display: flex;
   justify-content: center;

@@ -25,4 +25,8 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 		password: string
 	): Promise<{ success: boolean; message: string }> =>
 		ipcRenderer.invoke('auth:login', { email, password }),
+
+	logout(): void {
+		ipcRenderer.send('auth:logout');
+	},
 });

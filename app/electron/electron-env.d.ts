@@ -17,6 +17,7 @@ interface IpcRendererApi {
 		email: string,
 		password: string
 	): Promise<{ success: boolean; message: string }>;
+	logout(): void;
 }
 
 interface Window {
