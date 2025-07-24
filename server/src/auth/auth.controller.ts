@@ -11,6 +11,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -38,5 +39,11 @@ export class AuthController {
 	@Get('profile')
 	getProfile(@Request() req) {
 		return req.user;
+	}
+
+	@Post('refresh')
+	refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+		const { refreshToken } = refreshTokenDto;
+		return this.authService.refresh(refreshToken);
 	}
 }

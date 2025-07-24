@@ -48,4 +48,27 @@ export class AuthService {
 
 		return this.login(user);
 	}
+
+	async refresh(token: string) {
+		const data = await this.jwtService.verify(token);
+
+		if (!data) throw new UnauthorizedException('Invalid token');
+
+		const user = await this.userService.findOneById(data.sub);
+
+		if (!user) throw new UnauthorizedException('User not found');
+
+		const payload = {
+			username: user.username,
+			email: user.email,
+			sub: user.id,
+		};
+
+		return {
+			accessToken: this.jwtService.sign(payload),
+			refreshToken: this.jwtService.sign(payload, {
+				expiresIn: jwtConstants.refreshTokenExpiresIn,
+			}),
+		};
+	}
 }
