@@ -1,31 +1,39 @@
 import { ipcMain } from 'electron';
-import api from '../utils/axios.config';
-import store from '../utils/store';
+import authService from '../services/auth.service';
+import apiService from '../services/api.service';
+import { logindDto, loginIpcResponse } from '@shared/ipc.types';
 
 const registerIpcHandlers = () => {
 	ipcMain.handle(
 		'auth:login',
-		async (event, data: { email: string; password: string }) => {
+		async (_event, credentials: logindDto): Promise<loginIpcResponse> => {
 			try {
-				const response = await api.post('/auth/login', data);
+				await authService.login(
+					credentials.email,
+					credentials.password
+				);
 
-				const { accessToken, refreshToken } = response.data;
+				const user = await apiService.getUserProfile();
 
-				store.setTokens(accessToken, refreshToken);
-
-				return { success: true, message: null };
+				return {
+					success: true,
+					data: {
+						email: user.email,
+						username: user.username,
+						id: user.id,
+					},
+				};
 			} catch (error: any) {
 				return {
 					success: false,
-					message:
-						error.response?.data?.message ||
-						'Server error occurred during login.',
+					error: error.message || 'Login failed. Please try again.',
 				};
 			}
 		}
 	);
-	ipcMain.on('auth:logout', async (event, data) => {
-		store.clearTokens();
+
+	ipcMain.on('auth:logout', async () => {
+		authService.logout();
 	});
 };
 

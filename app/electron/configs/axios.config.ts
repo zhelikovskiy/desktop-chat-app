@@ -1,5 +1,5 @@
 import axios from 'axios';
-import store from './store';
+import authService from '../services/auth.service';
 
 const api = axios.create({
 	baseURL: 'http://localhost:3000',
@@ -10,18 +10,24 @@ const api = axios.create({
 	},
 });
 
-api.interceptors.request.use((config) => {
-	const token = store.getAccessToken();
-	if (token) {
-		config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+	(config) => {
+		const accessToken = authService.getAccessToken();
+		if (accessToken) {
+			config.headers.Authorization = `Bearer ${accessToken}`;
+		}
+		return config;
+	},
+	(error) => {
+		return Promise.reject(error);
 	}
-	return config;
-});
+);
 
 api.interceptors.response.use(
 	(res) => res,
 	async (error) => {
 		const originalRequest = error.config;
+
 		const isAuthEndpoint =
 			originalRequest.url?.includes('/auth/login') ||
 			originalRequest.url?.includes('/auth/refresh') ||
@@ -33,20 +39,16 @@ api.interceptors.response.use(
 
 		if (error.response?.status === 401 && !originalRequest._retry) {
 			originalRequest._retry = true;
-			try {
-				const refreshToken = store.getRefreshToken();
-				const response = await api.post('/auth/refresh', {
-					refreshToken: refreshToken,
-				});
 
-				if (response.data.accessToken)
-					store.setAccessToken(response.data.accessToken);
+			try {
+				await authService.refreshTokens();
 
 				return api(originalRequest);
 			} catch (error) {
 				return Promise.reject(error);
 			}
 		}
+
 		return Promise.reject(error);
 	}
 );

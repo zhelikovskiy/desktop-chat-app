@@ -15,6 +15,11 @@ export default defineConfig({
 							external: ['./electron'],
 						},
 					},
+					resolve: {
+						alias: {
+							'@shared': path.resolve(__dirname, './shared'),
+						},
+					},
 				},
 			},
 			preload: {
@@ -26,7 +31,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, './src'),
+			'@shared': path.resolve(__dirname, './shared'),
 		},
 	},
 });
-

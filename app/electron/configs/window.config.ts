@@ -20,7 +20,7 @@ function createWindow() {
 	win = new BrowserWindow({
 		width: 800,
 		height: 600,
-		icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+		icon: path.join(process.env.VITE_PUBLIC || '', 'electron-vite.svg'),
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.mjs'),
 			nodeIntegration: false,
@@ -33,6 +33,8 @@ function createWindow() {
 	} else {
 		win.loadFile(path.join(RENDERER_DIST, 'index.html'));
 	}
+
+	return win;
 }
 
 export default createWindow;

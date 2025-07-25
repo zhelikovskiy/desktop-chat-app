@@ -6,9 +6,7 @@ const password = ref('');
 const username = ref('');
 
 function register() {
-	console.log('Email:', email.value);
-	console.log('Username:', username.value);
-	console.log('Password:', password.value);
+	
 }
 </script>
 

@@ -1,32 +1,18 @@
 import { ipcRenderer, contextBridge } from 'electron';
+import { logindDto, loginIpcResponse } from '@shared/ipc.types';
 
 contextBridge.exposeInMainWorld('ipcRenderer', {
-	on(...args: Parameters<typeof ipcRenderer.on>) {
-		const [channel, listener] = args;
-		return ipcRenderer.on(channel, (event, ...args) =>
-			listener(event, ...args)
-		);
-	},
-	off(...args: Parameters<typeof ipcRenderer.off>) {
-		const [channel, ...omit] = args;
-		return ipcRenderer.off(channel, ...omit);
-	},
-	send(...args: Parameters<typeof ipcRenderer.send>) {
-		const [channel, ...omit] = args;
-		return ipcRenderer.send(channel, ...omit);
-	},
-	invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-		const [channel, ...omit] = args;
-		return ipcRenderer.invoke(channel, ...omit);
-	},
+	login: (credentials: logindDto): Promise<loginIpcResponse> =>
+		ipcRenderer.invoke('auth:login', credentials),
+	logout: (): void => ipcRenderer.send('auth:logout'),
 
-	login: (
-		email: string,
-		password: string
-	): Promise<{ success: boolean; message: string }> =>
-		ipcRenderer.invoke('auth:login', { email, password }),
-
-	logout(): void {
-		ipcRenderer.send('auth:logout');
-	},
+	onLogin: (
+		callback: (data: {
+			email: string;
+			username: string;
+			id: string;
+		}) => void
+	) => ipcRenderer.on('auth:loggedIn', (_event, data) => callback(data)),
+	onLogout: (callback: () => void) =>
+		ipcRenderer.on('auth:loggedOut', () => callback()),
 });

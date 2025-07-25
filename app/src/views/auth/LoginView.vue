@@ -7,18 +7,20 @@ const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');
+const errorMessage = ref('');
 
 const handleLogin = async () => {
-		const loginResponse = await window.ipcRenderer.login(
-			email.value,
-			password.value
-		);
+		const response = await window.ipcRenderer.login({
+			email: email.value,
+			password: password.value
+		});
 
-		if(loginResponse.success) {
-			authStore.login();
-			router.push('/');
-		} else {
-			alert(loginResponse.message || 'Login failed. Please try again.');
+		if (response.success) {
+			authStore.login(response.data);
+			router.push({ name: 'Home' });
+		}
+		else{
+			errorMessage.value = response.error;
 		}
 };
 </script>
@@ -42,10 +44,13 @@ const handleLogin = async () => {
 			</div>
 			<button type="submit">Login</button>
 		</form>
+		<div v-if="errorMessage" class="error-message">
+			{{ errorMessage }}
+		</div>
 	</div>
 </template>
 
-<style scoped> /* Добавляем scoped, чтобы стили применялись только к этому компоненту */
+<style scoped> 
 form {
 	display: flex;
 	flex-direction: column;
@@ -100,5 +105,10 @@ form input[type="password"]:focus {
 	form input[type="password"]:focus {
 		border-color: #535bf2;
 	}
+}
+
+.error-message {
+    color: red;
+    margin-top: 1rem;
 }
 </style>

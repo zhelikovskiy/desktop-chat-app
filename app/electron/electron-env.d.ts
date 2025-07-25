@@ -1,5 +1,7 @@
 /// <reference types="vite-plugin-electron/electron-env" />
 
+import { IpcRenderer } from '@shared/ipc.interface';
+
 declare namespace NodeJS {
 	interface ProcessEnv {
 		APP_ROOT: string;
@@ -8,18 +10,6 @@ declare namespace NodeJS {
 	}
 }
 
-interface IpcRendererApi {
-	on: typeof import('electron').ipcRenderer.on;
-	off: typeof import('electron').ipcRenderer.off;
-	send: typeof import('electron').ipcRenderer.send;
-	invoke: typeof import('electron').ipcRenderer.invoke;
-	login(
-		email: string,
-		password: string
-	): Promise<{ success: boolean; message: string }>;
-	logout(): void;
-}
-
 interface Window {
-	ipcRenderer: IpcRendererApi;
+	ipcRenderer: IpcRenderer;
 }

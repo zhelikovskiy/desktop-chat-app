@@ -1,9 +1,13 @@
 import { app, BrowserWindow } from 'electron';
 import registerIpcHandlers from './ipc/handlers';
-import createWindow from './utils/windowManager';
+import createWindow from './configs/window.config';
 
 app.whenReady().then(() => {
-	createWindow();
+	const mainWindow = createWindow();
+
+	const {
+		session: { webRequest },
+	} = mainWindow.webContents;
 
 	registerIpcHandlers();
 

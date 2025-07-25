@@ -18,10 +18,5 @@ router.isReady().then(() => {
 		router.push('/login');
 	}
 
-	app.mount('#app').$nextTick(() => {
-		window.ipcRenderer.on('main-process-message', (_event, message) => {
-			console.log(message);
-		});
-	});
+	app.mount('#app').$nextTick(() => {});
 });
-
