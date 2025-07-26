@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import router from '@/routes';
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
@@ -10,18 +10,12 @@ const password = ref('');
 const errorMessage = ref('');
 
 const handleLogin = async () => {
-		const response = await window.ipcRenderer.login({
-			email: email.value,
-			password: password.value
-		});
-
-		if (response.success) {
-			authStore.login(response.data);
-			router.push({ name: 'Home' });
-		}
-		else{
-			errorMessage.value = response.error;
-		}
+	try {
+		await authStore.login({ email: email.value, password: password.value });
+		router.push('/');
+	} catch (error: any) {
+		errorMessage.value = error.message;
+	}
 };
 </script>
 
@@ -50,7 +44,7 @@ const handleLogin = async () => {
 	</div>
 </template>
 
-<style scoped> 
+<style scoped>
 form {
 	display: flex;
 	flex-direction: column;
@@ -72,8 +66,8 @@ form label {
 	color: rgba(255, 255, 255, 0.87);
 }
 
-form input[type="email"],
-form input[type="password"] {
+form input[type='email'],
+form input[type='password'] {
 	width: 100%;
 	padding: 0.8em 1.2em;
 	border-radius: 8px;
@@ -83,8 +77,8 @@ form input[type="password"] {
 	box-sizing: border-box;
 }
 
-form input[type="email"]:focus,
-form input[type="password"]:focus {
+form input[type='email']:focus,
+form input[type='password']:focus {
 	outline: none;
 	border-color: #535bf2;
 }
@@ -94,21 +88,21 @@ form input[type="password"]:focus {
 		color: #213547;
 	}
 
-	form input[type="email"],
-	form input[type="password"] {
+	form input[type='email'],
+	form input[type='password'] {
 		background-color: #ffffff;
 		border: 1px solid #747bff;
 		color: #213547;
 	}
 
-	form input[type="email"]:focus,
-	form input[type="password"]:focus {
+	form input[type='email']:focus,
+	form input[type='password']:focus {
 		border-color: #535bf2;
 	}
 }
 
 .error-message {
-    color: red;
-    margin-top: 1rem;
+	color: red;
+	margin-top: 1rem;
 }
 </style>

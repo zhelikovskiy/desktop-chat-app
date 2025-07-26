@@ -3,20 +3,18 @@ import './style.css';
 import App from './App.vue';
 import router from './routes';
 import { createPinia } from 'pinia';
+import { useAuthStore } from './stores/auth.store';
 
 const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia);
+
+const authStore = useAuthStore(pinia);
+await authStore.autoLogin();
+
 app.use(router);
 
 router.isReady().then(() => {
-	if (
-		router.currentRoute.value.meta.requiresAuth &&
-		!localStorage.getItem('authToken')
-	) {
-		router.push('/login');
-	}
-
 	app.mount('#app').$nextTick(() => {});
 });

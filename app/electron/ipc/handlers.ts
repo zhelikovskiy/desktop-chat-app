@@ -32,6 +32,33 @@ const registerIpcHandlers = () => {
 		}
 	);
 
+	ipcMain.handle('auth:autoLogin', async () => {
+		const isTokenExist = await authService.checkRefreshToken();
+
+		if (!isTokenExist)
+			return { success: false, error: 'No valid session found.' };
+
+		try {
+			await authService.refreshTokens();
+
+			const user = await apiService.getUserProfile();
+
+			return {
+				success: true,
+				data: {
+					email: user.email,
+					username: user.username,
+					id: user.id,
+				},
+			};
+		} catch (error: any) {
+			return {
+				success: false,
+				error: error.message || 'Auto-login failed',
+			};
+		}
+	});
+
 	ipcMain.on('auth:logout', async () => {
 		authService.logout();
 	});

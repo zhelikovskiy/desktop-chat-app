@@ -8,12 +8,13 @@
 	const handleLogout = () => {
 		authStore.logout();
 		window.ipcRenderer.logout();
+		
 		router.push('/login');
 	}
 </script>
 
 <template>
-	<nav class="navbar">
+	<nav v-if="authStore.isAuthenticated" class="navbar">
 		<router-link to="/" class="nav-item">Home</router-link>
 		<router-link to="/chat" class="nav-item">Chat</router-link>
 		<router-link to="/profile" class="nav-item">Profile</router-link>

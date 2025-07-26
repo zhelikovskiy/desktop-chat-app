@@ -1,5 +1,6 @@
 import tokenStorage from '../stores/token.store';
 import api from '../configs/axios.config';
+import { handleValue } from '../utils/utils';
 
 const authService = {
 	login: async (email: string, password: string) => {
@@ -10,9 +11,8 @@ const authService = {
 
 			tokenStorage.setTokens(accessToken, refreshToken);
 		} catch (error: any) {
-			const { message } = error.response.data;
 			throw new Error(
-				Array.isArray(message) ? message[0] : message || 'Login failed'
+				handleValue(error.response.data.message) || 'Login failed'
 			);
 		}
 	},
@@ -31,17 +31,25 @@ const authService = {
 			const response = await api.post('/auth/refresh', {
 				refreshToken: tokens.refreshToken,
 			});
+
 			const { accessToken, refreshToken } = response.data;
 
 			tokenStorage.setTokens(accessToken, refreshToken);
 		} catch (error: any) {
-			return Promise.reject(error.data.error || error.message);
+			throw new Error(
+				handleValue(error.response.data.message) || 'Login failed'
+			);
 		}
 	},
 
 	getAccessToken: () => {
 		const tokens = tokenStorage.getTokens();
 		return tokens.accessToken;
+	},
+
+	checkRefreshToken: () => {
+		const tokens = tokenStorage.getTokens();
+		return !!tokens.accessToken && !!tokens.refreshToken;
 	},
 };
 

@@ -1,10 +1,6 @@
+import { logindDto, UserInfo } from '@shared/ipc.types';
 import { defineStore } from 'pinia';
 
-interface UserInfo {
-	id: string;
-	username: string;
-	email: string;
-}
 interface AuthState {
 	loggedIn: boolean;
 	user: UserInfo | null;
@@ -20,13 +16,32 @@ export const useAuthStore = defineStore('auth', {
 		getUserInfo: (state) => state.user,
 	},
 	actions: {
-		login(userInfo: UserInfo) {
-			this.loggedIn = true;
-			this.user = userInfo;
+		async login(credentials: logindDto) {
+			const response = await window.ipcRenderer.login(credentials);
+
+			if (response.success) {
+				this.loggedIn = true;
+				this.user = response.data;
+			} else {
+				throw new Error(response.error || 'Login failed');
+			}
 		},
+
 		logout() {
 			this.loggedIn = false;
 			this.user = null;
+		},
+
+		async autoLogin() {
+			const response = await window.ipcRenderer.autoLogin();
+
+			if (response.success) {
+				this.loggedIn = true;
+				this.user = response.data;
+			} else {
+				this.loggedIn = false;
+				this.user = null;
+			}
 		},
 	},
 });

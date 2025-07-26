@@ -1,11 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
-import HomeView from '@/views/HomeView.vue';
 
 const routes = [
 	{
 		path: '/',
-		component: HomeView,
+		component: () => import('@/views/HomeView.vue'),
 		meta: { requiresAuth: true },
 		name: 'Home',
 	},
@@ -28,7 +27,7 @@ const router = createRouter({
 	routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
 	const authStore = useAuthStore();
 
 	if (to.meta.requiresAuth && !authStore.isAuthenticated) {

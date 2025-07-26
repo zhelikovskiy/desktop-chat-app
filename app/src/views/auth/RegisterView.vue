@@ -5,9 +5,7 @@ const email = ref('');
 const password = ref('');
 const username = ref('');
 
-function register() {
-	
-}
+function register() {}
 </script>
 
 <template>
