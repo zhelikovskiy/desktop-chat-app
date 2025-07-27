@@ -1,10 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { jwtConstants } from './constants';
 import { RegisterDto } from './dto/register.dto';
 import { IUser } from 'src/common/interfaces/user.interface';
+import { isExistingUser } from './utils/is-existing-user';
 
 @Injectable()
 export class AuthService {
@@ -70,5 +75,42 @@ export class AuthService {
 				expiresIn: jwtConstants.refreshTokenExpiresIn,
 			}),
 		};
+	}
+
+	async getVerifyLink(registerDto: RegisterDto) {
+		await isExistingUser(
+			{ email: registerDto.email, username: registerDto.username },
+			this.userService
+		);
+
+		const payload = {
+			email: registerDto.email,
+			username: registerDto.username,
+			password: registerDto.password,
+		};
+
+		const token = this.jwtService.sign(payload, {
+			secret: jwtConstants.verifyTokenSecret,
+			expiresIn: jwtConstants.verifyTokenExpiresIn,
+		});
+
+		return `the-hearth://verify?token=${token}`;
+	}
+
+	async verify(token: string) {
+		try {
+			const data = this.jwtService.verify(token, {
+				secret: jwtConstants.verifyTokenSecret,
+			}) as RegisterDto;
+
+			await isExistingUser(
+				{ email: data.email, username: data.username },
+				this.userService
+			);
+
+			return data;
+		} catch (error) {
+			throw new BadRequestException('Invalid or expired token');
+		}
 	}
 }

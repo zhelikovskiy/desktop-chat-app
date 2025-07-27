@@ -1,5 +1,5 @@
 {
-	"name": "server",
+	"name": "the-hearth-server",
 	"version": "0.0.1",
 	"description": "",
 	"author": "",
@@ -32,6 +32,7 @@
 		"class-validator": "^0.14.2",
 		"dotenv": "^17.2.0",
 		"handlebars": "^4.7.8",
+		"jsonwebtoken": "^9.0.2",
 		"nodemailer": "^7.0.5",
 		"passport": "^0.7.0",
 		"passport-jwt": "^4.0.1",
@@ -49,6 +50,7 @@
 		"@types/bcryptjs": "^2.4.6",
 		"@types/express": "^5.0.0",
 		"@types/jest": "^29.5.14",
+		"@types/jsonwebtoken": "^9.0.10",
 		"@types/node": "^22.10.7",
 		"@types/passport": "^1.0.17",
 		"@types/passport-jwt": "^4.0.1",
