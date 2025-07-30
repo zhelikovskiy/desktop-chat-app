@@ -54,8 +54,10 @@ export class UsersService {
 	async findAll() {
 		return this.prismaService.user.findMany();
 	}
+
 	async findManyByFilter() {}
 	async updateOne() {}
+
 	async deleteOne(id: string) {
 		return this.prismaService.user.delete({
 			where: {
