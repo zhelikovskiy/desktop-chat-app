@@ -25,6 +25,7 @@ export class RedisService {
 		await this.set(`verify:${code}`, data, 60 * 10);
 	}
 
+	// TODO create dto
 	async getVerification(
 		code: string
 	): Promise<{ email: string; username: string; password: string } | null> {

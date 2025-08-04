@@ -16,20 +16,4 @@ export class MailService {
 			},
 		});
 	}
-
-	async sendVerificationLink(email: string, username: string, link: string) {
-		try {
-			await this.mailerService.sendMail({
-				to: email,
-				subject: 'Account Verification',
-				template: 'welcome',
-				context: {
-					username,
-					link,
-				},
-			});
-		} catch (error) {
-			throw new Error('Failed to send verification email');
-		}
-	}
 }
