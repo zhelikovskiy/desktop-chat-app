@@ -6,33 +6,17 @@ import {
 	UnauthorizedException,
 	UseGuards,
 	Request,
+	ForbiddenException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { MailService } from 'src/mail/mail.service';
 
 @Controller('auth')
 export class AuthController {
-	constructor(
-		private authService: AuthService,
-		private mailService: MailService
-	) {}
-
-	@Post('register')
-	async register(@Body() registerDto: RegisterDto) {
-		const link = await this.authService.getVerifyLink(registerDto);
-
-		await this.mailService.sendVerificationEmail(
-			registerDto.email,
-			registerDto.username,
-			link
-		);
-
-		return 200;
-	}
+	constructor(private authService: AuthService) {}
 
 	@Post('login')
 	async login(@Body() loginDto: LoginDto) {
@@ -59,16 +43,20 @@ export class AuthController {
 		return this.authService.refresh(refreshToken);
 	}
 
+	@Post('register')
+	async register(@Body() registerDto: RegisterDto) {
+		await this.authService.requestEmailVerification(registerDto);
+
+		return 200;
+	}
+
 	@Post('verify')
-	async verify(@Body('token') token: string) {
-		const payload = await this.authService.verify(token);
+	async verify(@Body('code') code: string) {
+		const registerData = await this.authService.confirmEmailByCode(code);
 
-		const registerDto: RegisterDto = {
-			email: payload.email,
-			username: payload.username,
-			password: payload.password,
-		};
+		if (!registerData)
+			throw new ForbiddenException('Invalid verification code.');
 
-		return this.authService.register(registerDto);
+		return this.authService.register(registerData);
 	}
 }

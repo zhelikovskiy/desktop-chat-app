@@ -1,23 +1,35 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MailService {
 	constructor(private mailerService: MailerService) {}
 
-	async sendVerificationEmail(to: string, name: string, link: string) {
+	async sendVerificationCode(email: string, username: string, code: string) {
+		await this.mailerService.sendMail({
+			to: email,
+			subject: 'Account Verification',
+			template: 'code',
+			context: {
+				username,
+				code,
+			},
+		});
+	}
+
+	async sendVerificationLink(email: string, username: string, link: string) {
 		try {
 			await this.mailerService.sendMail({
-				to,
-				subject: 'Email Verification',
+				to: email,
+				subject: 'Account Verification',
 				template: 'welcome',
 				context: {
+					username,
 					link,
-					name,
 				},
 			});
 		} catch (error) {
-			throw new HttpException('Failed to send verification email', 500);
+			throw new Error('Failed to send verification email');
 		}
 	}
 }
