@@ -3,6 +3,8 @@ import registerIpcHandlers from './ipc/handlers';
 import createWindow from './configs/window.config';
 import { autoLogin } from './utils/autoLoginOnStart';
 
+app.setAsDefaultProtocolClient('the-hearth');
+
 app.whenReady()
 	.then(() => {
 		const mainWindow = createWindow();

@@ -1,32 +1,48 @@
 <script setup lang="ts">
-import router from '@/routes';
 import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth.store';
+import { useRouter } from 'vue-router';
+import { useRegisterStore } from '@/stores/register.store';
 
-const authStore = useAuthStore();
+const router = useRouter();
+const registerStore = useRegisterStore();
 
 const email = ref('');
 const password = ref('');
+const username = ref('');
 const errorMessage = ref('');
 
-const handleLogin = async () => {
-	try {
-		await authStore.login({ email: email.value, password: password.value });
-		router.push('/');
-	} catch (error: any) {
-		errorMessage.value = error.message;
-	}
+const handleRegister = async () => {
+	const response = await registerStore.register(
+		email.value,
+		username.value,
+		password.value
+	);
+
+	if (response.success)
+		router.push({
+			name: 'Verify',
+		});
+	else errorMessage.value = response.error;
 };
 </script>
 
 <template>
 	<main>
 		<div class="card">
-			<h1>Login</h1>
-			<form @submit.prevent="handleLogin">
+			<h1>Register</h1>
+			<form @submit.prevent="handleRegister">
 				<div>
 					<label for="email">Email:</label>
 					<input id="email" v-model="email" type="email" required />
+				</div>
+				<div>
+					<label for="username">Username:</label>
+					<input
+						id="username"
+						v-model="username"
+						type="text"
+						required
+					/>
 				</div>
 				<div>
 					<label for="password">Password:</label>
@@ -37,10 +53,10 @@ const handleLogin = async () => {
 						required
 					/>
 				</div>
-				<button type="submit">Login</button>
+				<button type="submit">Register</button>
 				<p>
-					Don't have an account?
-					<router-link to="/register">Register</router-link>
+					Already have an account?
+					<router-link to="/login">Login</router-link>
 				</p>
 			</form>
 			<div v-if="errorMessage" class="error-message">
@@ -88,6 +104,7 @@ form label {
 }
 
 form input[type='email'],
+form input[type='text'],
 form input[type='password'] {
 	width: 100%;
 	padding: 0.8em 1.2em;
@@ -99,6 +116,7 @@ form input[type='password'] {
 }
 
 form input[type='email']:focus,
+form input[type='text']:focus,
 form input[type='password']:focus {
 	outline: none;
 	border-color: #535bf2;
@@ -158,6 +176,7 @@ a:hover {
 	}
 
 	form input[type='email'],
+	form input[type='text'],
 	form input[type='password'] {
 		background-color: #ffffff;
 		border: 1px solid #747bff;
@@ -165,6 +184,7 @@ a:hover {
 	}
 
 	form input[type='email']:focus,
+	form input[type='text']:focus,
 	form input[type='password']:focus {
 		border-color: #535bf2;
 	}

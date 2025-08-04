@@ -10,7 +10,7 @@ const routes = [
 	},
 	{
 		path: '/register',
-		component: () => import('@/views/auth/RegisterView.vue'),
+		component: () => import('@/views/register/RegisterView.vue'),
 		meta: { requiresAuth: false },
 		name: 'Register',
 	},
@@ -19,6 +19,12 @@ const routes = [
 		component: () => import('@/views/auth/LoginView.vue'),
 		meta: { requiresAuth: false },
 		name: 'Login',
+	},
+	{
+		path: '/verify',
+		component: () => import('@/views/register/CodeVerifyView.vue'),
+		meta: { requiresAuth: false },
+		name: 'Verify',
 	},
 ];
 

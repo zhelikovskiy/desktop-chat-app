@@ -37,7 +37,8 @@ const authService = {
 			tokenStorage.setTokens(accessToken, refreshToken);
 		} catch (error: any) {
 			throw new Error(
-				handleValue(error.response.data.message) || 'Login failed'
+				handleValue(error.response.data.message) ||
+					'Refresh token failed.'
 			);
 		}
 	},

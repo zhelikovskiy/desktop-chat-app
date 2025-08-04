@@ -5,7 +5,6 @@ export type UserInfo = {
 	username: string;
 	id: string;
 };
-
 export type loginIpcResponse = IpcResult<{
 	email: string;
 	username: string;
@@ -15,4 +14,10 @@ export type loginIpcResponse = IpcResult<{
 export type logindDto = {
 	email: string;
 	password: string;
+};
+
+export type registerDto = {
+	email: string;
+	password: string;
+	username: string;
 };

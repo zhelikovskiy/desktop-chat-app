@@ -3,13 +3,13 @@ import { defineStore } from 'pinia';
 
 interface AuthState {
 	loggedIn: boolean;
-	user: UserInfo | null;
+	user: UserInfo | undefined;
 }
 
 export const useAuthStore = defineStore('auth', {
 	state: (): AuthState => ({
 		loggedIn: false,
-		user: null,
+		user: undefined,
 	}),
 	getters: {
 		isAuthenticated: (state) => state.loggedIn,
@@ -29,7 +29,7 @@ export const useAuthStore = defineStore('auth', {
 
 		logout() {
 			this.loggedIn = false;
-			this.user = null;
+			this.user = undefined;
 		},
 
 		async autoLogin() {
@@ -40,7 +40,7 @@ export const useAuthStore = defineStore('auth', {
 				this.user = response.data;
 			} else {
 				this.loggedIn = false;
-				this.user = null;
+				this.user = undefined;
 			}
 		},
 	},
