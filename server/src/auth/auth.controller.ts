@@ -9,17 +9,28 @@ import {
 	ForbiddenException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { ApiLoginDocs } from './docs/login.docs';
+import { ApiRegisterDocs } from './docs/register.docs';
+import { ApiRefreshDocs } from './docs/refresh.docs';
+import { ApiVerifyEmailDocs } from './docs/verify-email.docs';
+import { VerifyEmailRequestDto } from './dto/requests/verify-email.request.dto';
+import { LoginRequestDto } from './dto/requests/login.request.dto';
+import { RefreshTokenRequestDto } from './dto/requests/refresh-token.request.dto';
+import { RegisterRequestDto } from './dto/requests/register.request.dto';
+import { LoginResponseDto } from './dto/responses/login.response.dto';
+import { RefreshTokenResponseDto } from './dto/responses/refresh-token.response.dto';
+import { VerifyEmailResponseDto } from './dto/responses/verify-email.response.dto';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
 	constructor(private authService: AuthService) {}
 
 	@Post('login')
-	async login(@Body() loginDto: LoginDto) {
+	@ApiLoginDocs()
+	async login(@Body() loginDto: LoginRequestDto): Promise<LoginResponseDto> {
 		const user = await this.authService.validateUser(
 			loginDto.email,
 			loginDto.password
@@ -38,21 +49,27 @@ export class AuthController {
 	}
 
 	@Post('refresh')
-	refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+	@ApiRefreshDocs()
+	refresh(
+		@Body() refreshTokenDto: RefreshTokenRequestDto
+	): Promise<RefreshTokenResponseDto> {
 		const { refreshToken } = refreshTokenDto;
 		return this.authService.refresh(refreshToken);
 	}
 
 	@Post('register')
-	async register(@Body() registerDto: RegisterDto) {
+	@ApiRegisterDocs()
+	async register(@Body() registerDto: RegisterRequestDto): Promise<void> {
 		await this.authService.requestEmailVerification(registerDto);
-
-		return 200;
 	}
 
 	@Post('verify')
-	async verify(@Body('code') code: string) {
-		const registerData = await this.authService.confirmEmailByCode(code);
+	@ApiVerifyEmailDocs()
+	async verify(
+		@Body() verifyEmailDto: VerifyEmailRequestDto
+	): Promise<VerifyEmailResponseDto> {
+		const registerData =
+			await this.authService.confirmEmailByCode(verifyEmailDto);
 
 		if (!registerData)
 			throw new ForbiddenException('Invalid verification code.');

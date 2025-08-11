@@ -3,9 +3,10 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { jwtConstants } from './constants';
-import { RegisterDto } from './dto/register.dto';
 import { IUser } from 'src/common/interfaces/user.interface';
 import { VerificationService } from 'src/verification/verification.service';
+import { RegisterRequestDto } from './dto/requests/register.request.dto';
+import { VerifyEmailRequestDto } from './dto/requests/verify-email.request.dto';
 
 @Injectable()
 export class AuthService {
@@ -41,7 +42,7 @@ export class AuthService {
 		};
 	}
 
-	async register(registerDto: RegisterDto) {
+	async register(registerDto: RegisterRequestDto) {
 		const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 		const user = await this.userService.createOne({
 			...registerDto,
@@ -74,11 +75,11 @@ export class AuthService {
 		};
 	}
 
-	async requestEmailVerification(registerDto: RegisterDto) {
+	async requestEmailVerification(registerDto: RegisterRequestDto) {
 		await this.verificationService.createVerification({ ...registerDto });
 	}
 
-	async confirmEmailByCode(code: string) {
+	async confirmEmailByCode({ code }: VerifyEmailRequestDto) {
 		return await this.verificationService.confirmVerification(code);
 	}
 }

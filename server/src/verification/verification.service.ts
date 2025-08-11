@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MailService } from 'src/mail/mail.service';
 import { RedisService } from 'src/redis/redis.service';
 import { generateVerificationCode } from './utils/generate-verification-code';
-import { RegisterDto } from 'src/auth/dto/register.dto';
-import { CreateVerificationDto } from './dto/create-verification.dto';
+import { UserVerificationDto } from 'src/common/dto/user-verification.dto';
 
 @Injectable()
 export class VerificationService {
@@ -12,7 +11,7 @@ export class VerificationService {
 		private redisService: RedisService
 	) {}
 
-	async createVerification(data: CreateVerificationDto): Promise<void> {
+	async createVerification(data: UserVerificationDto): Promise<void> {
 		const code = generateVerificationCode();
 
 		await this.redisService.saveVerification(code, data);
@@ -23,8 +22,11 @@ export class VerificationService {
 			code
 		);
 	}
-	async confirmVerification(code: string): Promise<RegisterDto | null> {
-		const stored = await this.redisService.getVerification(code);
+	async confirmVerification(
+		code: string
+	): Promise<UserVerificationDto | null> {
+		const stored: UserVerificationDto | null =
+			await this.redisService.getVerification(code);
 
 		if (!stored) return null;
 

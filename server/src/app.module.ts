@@ -7,9 +7,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
 import { RedisModule } from './redis/redis.module';
 import { VerificationModule } from './verification/verification.module';
+import { SwaggerModule } from './swagger/swagger.module';
 
 @Module({
-	imports: [MailModule, UsersModule, AuthModule, PrismaModule, RedisModule, VerificationModule],
+	imports: [MailModule, UsersModule, AuthModule, PrismaModule, RedisModule, VerificationModule, SwaggerModule],
 	controllers: [AppController],
 	providers: [AppService],
 })
