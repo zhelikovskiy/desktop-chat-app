@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { MailService } from 'src/mail/mail.service';
 import { RedisService } from 'src/redis/redis.service';
 import { generateVerificationCode } from './utils/generate-verification-code';
-import { UserVerificationDto } from 'src/common/dto/user-verification.dto';
+import { UserVerificationDto } from 'src/common/dto/auth/user-verification.dto';
+import { VerifyEmailDto } from 'src/common/dto/auth/verify-email.dto';
 
 @Injectable()
 export class VerificationService {
@@ -14,7 +15,18 @@ export class VerificationService {
 	async createVerification(data: UserVerificationDto): Promise<void> {
 		const code = generateVerificationCode();
 
-		await this.redisService.saveVerification(code, data);
+		const isExist = await this.redisService.get(
+			`verify:${code}-${data.email}`
+		);
+
+		if (isExist)
+			await this.redisService.del(`verify:${code}-${data.email}`);
+
+		await this.redisService.set(
+			`verify:${code}-${data.email}`,
+			data,
+			60 * 10
+		);
 
 		await this.mailService.sendVerificationCode(
 			data.email,
@@ -22,14 +34,19 @@ export class VerificationService {
 			code
 		);
 	}
+
 	async confirmVerification(
-		code: string
+		data: VerifyEmailDto
 	): Promise<UserVerificationDto | null> {
-		const stored: UserVerificationDto | null =
-			await this.redisService.getVerification(code);
+		const stored: UserVerificationDto | null = await this.redisService.get(
+			`verify:${data.code}-${data.email}`
+		);
 
-		if (!stored) return null;
+		if (stored) {
+			await this.redisService.del(`verify:${data.code}-${data.email}`);
+			return stored;
+		}
 
-		return stored;
+		return null;
 	}
 }

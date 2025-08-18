@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { RefreshTokenResponseDto } from '../dto/responses/refresh-token.response.dto';
-import { RefreshTokenRequestDto } from '../dto/requests/refresh-token.request.dto';
+import { RefreshTokenResponse } from '../responses/refresh-token.response';
+import { RefreshTokenDto } from '../../common/dto/auth/refresh-token.dto';
 
 export function ApiRefreshDocs() {
 	return applyDecorators(
@@ -9,11 +9,11 @@ export function ApiRefreshDocs() {
 			summary: 'Refresh tokens',
 			description: 'Get new access and refresh tokens.',
 		}),
-		ApiBody({ type: RefreshTokenRequestDto }),
+		ApiBody({ type: RefreshTokenDto }),
 		ApiResponse({
 			status: 200,
 			description: 'New access and refresh token generated',
-			type: RefreshTokenResponseDto,
+			type: RefreshTokenResponse,
 		}),
 		ApiResponse({ status: 401, description: 'Invalid refresh token' })
 	);

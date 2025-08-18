@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { VerifyEmailRequestDto } from '../dto/requests/verify-email.request.dto';
-import { VerifyEmailResponseDto } from '../dto/responses/verify-email.response.dto';
+import { VerifyEmailDto } from '../../common/dto/auth/verify-email.dto';
+import { VerifyEmailResponse } from '../responses/verify-email.response';
 
 export function ApiVerifyEmailDocs() {
 	return applyDecorators(
@@ -9,11 +9,11 @@ export function ApiVerifyEmailDocs() {
 			summary: 'Verify email',
 			description: 'Verify email by code and get access/refresh tokens',
 		}),
-		ApiBody({ type: VerifyEmailRequestDto }),
+		ApiBody({ type: VerifyEmailDto }),
 		ApiResponse({
 			status: 200,
 			description: 'Account created',
-			type: VerifyEmailResponseDto,
+			type: VerifyEmailResponse,
 		}),
 		ApiResponse({ status: 401, description: 'Invalid credentials' })
 	);

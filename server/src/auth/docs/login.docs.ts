@@ -5,8 +5,8 @@ import {
 	ApiOkResponse,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { LoginResponseDto } from '../dto/responses/login.response.dto';
-import { LoginRequestDto } from '../dto/requests/login.request.dto';
+import { LoginResponse } from '../responses/login.response';
+import { LoginDto } from '../../common/dto/auth/login.dto';
 
 export function ApiLoginDocs() {
 	return applyDecorators(
@@ -14,10 +14,10 @@ export function ApiLoginDocs() {
 			summary: 'Login user',
 			description: 'Authenticate user and get access/refresh tokens',
 		}),
-		ApiBody({ type: LoginRequestDto }),
+		ApiBody({ type: LoginDto }),
 		ApiOkResponse({
 			description: 'Login successful',
-			type: LoginResponseDto,
+			type: LoginResponse,
 		}),
 		ApiUnauthorizedResponse({ description: 'Invalid email or password' })
 	);

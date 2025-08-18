@@ -12,16 +12,16 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiLoginDocs } from './docs/login.docs';
-import { ApiRegisterDocs } from './docs/register.docs';
+import { ApiSendVerificationEmailDocs } from './docs/send-verification-email.docs';
 import { ApiRefreshDocs } from './docs/refresh.docs';
 import { ApiVerifyEmailDocs } from './docs/verify-email.docs';
-import { VerifyEmailRequestDto } from './dto/requests/verify-email.request.dto';
-import { LoginRequestDto } from './dto/requests/login.request.dto';
-import { RefreshTokenRequestDto } from './dto/requests/refresh-token.request.dto';
-import { RegisterRequestDto } from './dto/requests/register.request.dto';
-import { LoginResponseDto } from './dto/responses/login.response.dto';
-import { RefreshTokenResponseDto } from './dto/responses/refresh-token.response.dto';
-import { VerifyEmailResponseDto } from './dto/responses/verify-email.response.dto';
+import { VerifyEmailDto } from '../common/dto/auth/verify-email.dto';
+import { LoginDto } from '../common/dto/auth/login.dto';
+import { RefreshTokenDto } from '../common/dto/auth/refresh-token.dto';
+import { RegisterDto } from '../common/dto/auth/register.dto';
+import { LoginResponse } from './responses/login.response';
+import { RefreshTokenResponse } from './responses/refresh-token.response';
+import { VerifyEmailResponse } from './responses/verify-email.response';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -30,7 +30,7 @@ export class AuthController {
 
 	@Post('login')
 	@ApiLoginDocs()
-	async login(@Body() loginDto: LoginRequestDto): Promise<LoginResponseDto> {
+	async login(@Body() loginDto: LoginDto): Promise<LoginResponse> {
 		const user = await this.authService.validateUser(
 			loginDto.email,
 			loginDto.password
@@ -42,32 +42,29 @@ export class AuthController {
 		return this.authService.login(user);
 	}
 
-	@UseGuards(AuthGuard('jwt'))
-	@Get('profile')
-	getProfile(@Request() req) {
-		return req.user;
-	}
-
 	@Post('refresh')
 	@ApiRefreshDocs()
 	refresh(
-		@Body() refreshTokenDto: RefreshTokenRequestDto
-	): Promise<RefreshTokenResponseDto> {
+		@Body() refreshTokenDto: RefreshTokenDto
+	): Promise<RefreshTokenResponse> {
 		const { refreshToken } = refreshTokenDto;
 		return this.authService.refresh(refreshToken);
 	}
 
-	@Post('register')
-	@ApiRegisterDocs()
-	async register(@Body() registerDto: RegisterRequestDto): Promise<void> {
-		await this.authService.requestEmailVerification(registerDto);
+	@Post('send-verification-email')
+	@ApiSendVerificationEmailDocs()
+	async sendVerificationEmail(
+		@Body() registerDto: RegisterDto
+	): Promise<void> {
+		await this.authService.isExistingUser(registerDto);
+		await this.authService.sendEmailVerification(registerDto);
 	}
 
-	@Post('verify')
+	@Post('verify-email')
 	@ApiVerifyEmailDocs()
-	async verify(
-		@Body() verifyEmailDto: VerifyEmailRequestDto
-	): Promise<VerifyEmailResponseDto> {
+	async verifyEmail(
+		@Body() verifyEmailDto: VerifyEmailDto
+	): Promise<VerifyEmailResponse> {
 		const registerData =
 			await this.authService.confirmEmailByCode(verifyEmailDto);
 

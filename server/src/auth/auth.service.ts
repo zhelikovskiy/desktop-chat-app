@@ -1,12 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { jwtConstants } from './constants';
 import { IUser } from 'src/common/interfaces/user.interface';
 import { VerificationService } from 'src/verification/verification.service';
-import { RegisterRequestDto } from './dto/requests/register.request.dto';
-import { VerifyEmailRequestDto } from './dto/requests/verify-email.request.dto';
+import { RegisterDto } from '../common/dto/auth/register.dto';
+import { VerifyEmailDto } from '../common/dto/auth/verify-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +19,24 @@ export class AuthService {
 		private jwtService: JwtService,
 		private verificationService: VerificationService
 	) {}
+
+	async isExistingUser(registerDto: RegisterDto) {
+		const existingEmail = await this.userService.findOneByEmail(
+			registerDto.email
+		);
+		if (existingEmail)
+			throw new BadRequestException(
+				'User with this email already exists'
+			);
+
+		const existingUsername = await this.userService.findOneByUsername(
+			registerDto.username
+		);
+		if (existingUsername)
+			throw new BadRequestException(
+				'User with this username already exists'
+			);
+	}
 
 	async validateUser(email: string, password: string) {
 		const user = await this.userService.findOneByEmail(email);
@@ -42,7 +64,7 @@ export class AuthService {
 		};
 	}
 
-	async register(registerDto: RegisterRequestDto) {
+	async register(registerDto: RegisterDto) {
 		const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 		const user = await this.userService.createOne({
 			...registerDto,
@@ -75,11 +97,13 @@ export class AuthService {
 		};
 	}
 
-	async requestEmailVerification(registerDto: RegisterRequestDto) {
+	async sendEmailVerification(registerDto: RegisterDto) {
 		await this.verificationService.createVerification({ ...registerDto });
 	}
 
-	async confirmEmailByCode({ code }: VerifyEmailRequestDto) {
-		return await this.verificationService.confirmVerification(code);
+	async confirmEmailByCode(verifyEmailDto: VerifyEmailDto) {
+		return await this.verificationService.confirmVerification(
+			verifyEmailDto
+		);
 	}
 }
