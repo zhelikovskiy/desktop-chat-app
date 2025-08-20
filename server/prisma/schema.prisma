@@ -14,8 +14,74 @@ model User {
 	email	String	@unique
 	password	String
 	avatarUrl	String?	@default("https://example.com/default-avatar.png")
-	bio	String?
-	status	String	@default("online")
+
+	members ChatMember[]
+	messages Message[]
+
 	createdAt	DateTime	@default(now())
 	updatedAt	DateTime	@updatedAt
+
+	@@map("users")
 }
+
+enum ChatType {
+	PRIVATE
+	GROUP
+	CHANNEL
+	SERVER_CHAT
+	SERVER_VOICE
+}
+
+enum ChatRole {
+	USER
+	ADMIN
+	MODERATOR
+}
+
+model ChatMember {
+	id	String	@id	@default(cuid())
+	role ChatRole
+
+	chatId	String
+	chat	Chat	@relation(fields: [chatId], references: [id])
+
+	userId	String
+	user	User	@relation(fields: [userId], references: [id])
+
+	@@map("chat-members")
+}
+
+model Message{
+	id	String	@id	@default(cuid())
+	
+	senderId	String
+	sender	User	@relation(fields: [senderId], references: [id])
+
+	chatId	String
+	chat	Chat	@relation(fields: [chatId], references: [id])
+
+	@@map("messages")
+}
+
+model Chat {
+	id	String	@id	@default(cuid())
+	type ChatType
+	name	String?
+
+	// serverId	String?
+	// server	Server?	@relation(fields: [serverId], references: [id])
+
+	messages Message[]
+	members ChatMember[]
+
+	@@map("chats")
+}
+
+// model Server{
+// 	id	String	@id	@default(cuid())
+// 	name	String
+
+// 	chats	Chat[]
+
+// 	@@map("servers")
+// }
