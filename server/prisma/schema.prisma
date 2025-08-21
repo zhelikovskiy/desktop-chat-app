@@ -24,6 +24,24 @@ model User {
 	@@map("users")
 }
 
+enum FileStatus {
+	TEMP
+	PERMANENT
+}
+
+model File {
+	id	String	@id	@default(cuid())
+	name	String
+	key	String
+	size	String
+	type	String
+	url	String
+
+	status	FileStatus
+	
+	createdAt DateTime	@default(now())
+}
+
 enum ChatType {
 	PRIVATE
 	GROUP
