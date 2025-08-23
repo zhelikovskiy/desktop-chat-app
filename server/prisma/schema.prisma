@@ -17,6 +17,7 @@ model User {
 
 	members ChatMember[]
 	messages Message[]
+	files	File[]
 
 	createdAt	DateTime	@default(now())
 	updatedAt	DateTime	@updatedAt
@@ -33,11 +34,14 @@ model File {
 	id	String	@id	@default(cuid())
 	name	String
 	key	String
-	size	String
-	type	String
+	size	Int
+	mimeType	String
 	url	String
 
-	status	FileStatus
+	userId	String
+	user	User	@relation(fields: [userId], references: [id])
+
+	status	FileStatus @default(TEMP)
 	
 	createdAt DateTime	@default(now())
 }
