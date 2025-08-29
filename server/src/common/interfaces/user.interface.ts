@@ -4,8 +4,6 @@ export interface IUser {
 	email: string;
 	password?: string;
 	avatarUrl: string | null;
-	status: string | null;
-	bio: string | null;
 	createdAt: Date;
 	updatedAt: Date;
 }

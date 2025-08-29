@@ -20,7 +20,9 @@
 		"test:e2e": "jest --config ./test/jest-e2e.json"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.864.0",
+		"@aws-sdk/client-s3": "^3.872.0",
+		"@aws-sdk/lib-storage": "^3.873.0",
+		"@aws-sdk/s3-request-presigner": "^3.872.0",
 		"@nestjs-modules/mailer": "^1.6.1",
 		"@nestjs/common": "^11.0.1",
 		"@nestjs/core": "^11.0.1",
@@ -36,6 +38,7 @@
 		"handlebars": "^4.7.8",
 		"ioredis": "^5.6.1",
 		"jsonwebtoken": "^9.0.2",
+		"multer": "^2.0.2",
 		"nodemailer": "^7.0.5",
 		"passport": "^0.7.0",
 		"passport-jwt": "^4.0.1",
@@ -44,6 +47,7 @@
 		"swagger-ui-express": "^5.0.1"
 	},
 	"devDependencies": {
+		"@aws-sdk/types": "^3.862.0",
 		"@eslint/eslintrc": "^3.2.0",
 		"@eslint/js": "^9.18.0",
 		"@nestjs/cli": "^11.0.0",

@@ -25,10 +25,6 @@ model User {
 	@@map("users")
 }
 
-enum FileStatus {
-	TEMP
-	PERMANENT
-}
 
 model File {
 	id	String	@id	@default(cuid())
@@ -40,8 +36,6 @@ model File {
 
 	userId	String
 	user	User	@relation(fields: [userId], references: [id])
-
-	status	FileStatus @default(TEMP)
 	
 	createdAt DateTime	@default(now())
 }

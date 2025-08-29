@@ -5,8 +5,8 @@ import {
 	Post,
 	UnauthorizedException,
 	UseGuards,
-	Request,
 	ForbiddenException,
+	Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -15,13 +15,14 @@ import { ApiLoginDocs } from './docs/login.docs';
 import { ApiSendVerificationEmailDocs } from './docs/send-verification-email.docs';
 import { ApiRefreshDocs } from './docs/refresh.docs';
 import { ApiVerifyEmailDocs } from './docs/verify-email.docs';
-import { VerifyEmailDto } from '../common/dto/auth/verify-email.dto';
-import { LoginDto } from '../common/dto/auth/login.dto';
-import { RefreshTokenDto } from '../common/dto/auth/refresh-token.dto';
-import { RegisterDto } from '../common/dto/auth/register.dto';
+import { VerifyEmailDto } from '../../common/dto/auth/verify-email.dto';
+import { LoginDto } from '../../common/dto/auth/login.dto';
+import { RefreshTokenDto } from '../../common/dto/auth/refresh-token.dto';
+import { RegisterDto } from '../../common/dto/auth/register.dto';
 import { LoginResponse } from './responses/login.response';
 import { RefreshTokenResponse } from './responses/refresh-token.response';
 import { VerifyEmailResponse } from './responses/verify-email.response';
+import { Request } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -72,5 +73,11 @@ export class AuthController {
 			throw new ForbiddenException('Invalid verification code.');
 
 		return this.authService.register(registerData);
+	}
+
+	@Get('me')
+	@UseGuards(AuthGuard('jwt'))
+	getProfile(@Req() req: Request) {
+		return req.user;
 	}
 }

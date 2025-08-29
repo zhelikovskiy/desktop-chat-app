@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { VerifyEmailDto } from '../../common/dto/auth/verify-email.dto';
+import { VerifyEmailDto } from '../../../common/dto/auth/verify-email.dto';
 import { VerifyEmailResponse } from '../responses/verify-email.response';
 
 export function ApiVerifyEmailDocs() {
