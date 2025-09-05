@@ -8,6 +8,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ChatRole {
+	OWNER
+	ADMIN
+	MEMBER
+}
+
+enum ChatType {
+	PRIVATE
+	GROUP
+}
+
 model User {
 	id	String	@id @default(cuid())
 	username	String	@unique
@@ -15,9 +26,9 @@ model User {
 	password	String
 	avatarUrl	String?	@default("https://example.com/default-avatar.png")
 
-	members ChatMember[]
+	chatMembers ChatMember[]
 	messages Message[]
-	files	File[]
+	files File[]
 
 	createdAt	DateTime	@default(now())
 	updatedAt	DateTime	@updatedAt
@@ -25,6 +36,50 @@ model User {
 	@@map("users")
 }
 
+model Chat {
+	id	String	@id	@default(cuid())
+	name	String?
+	avatarUrl	String?
+
+	type	ChatType
+
+	members ChatMember[]
+	messages Message[]
+
+	createdAt	DateTime	@default(now())
+	updatedAt	DateTime	@updatedAt
+
+	@@map("chats")
+}
+
+model ChatMember {
+	id	String	@id	@default(cuid())
+	role ChatRole
+
+	chatId	String
+	chat	Chat	@relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+	userId	String
+	user	User	@relation(fields: [userId], references: [id])
+
+	@@map("chat-members")
+}
+
+model Message{
+	id	String	@id	@default(cuid())
+	content	String
+	
+	senderId	String
+	sender	User	@relation(fields: [senderId], references: [id])
+
+	chatId	String
+	chat	Chat	@relation(fields: [chatId], references: [id])
+
+	createdAt DateTime	@default(now())
+	updatedAt DateTime	@updatedAt
+
+	@@map("messages")
+}
 
 model File {
 	id	String	@id	@default(cuid())
@@ -39,65 +94,3 @@ model File {
 	
 	createdAt DateTime	@default(now())
 }
-
-enum ChatType {
-	PRIVATE
-	GROUP
-	CHANNEL
-	SERVER_CHAT
-	SERVER_VOICE
-}
-
-enum ChatRole {
-	USER
-	ADMIN
-	MODERATOR
-}
-
-model ChatMember {
-	id	String	@id	@default(cuid())
-	role ChatRole
-
-	chatId	String
-	chat	Chat	@relation(fields: [chatId], references: [id])
-
-	userId	String
-	user	User	@relation(fields: [userId], references: [id])
-
-	@@map("chat-members")
-}
-
-model Message{
-	id	String	@id	@default(cuid())
-	
-	senderId	String
-	sender	User	@relation(fields: [senderId], references: [id])
-
-	chatId	String
-	chat	Chat	@relation(fields: [chatId], references: [id])
-
-	@@map("messages")
-}
-
-model Chat {
-	id	String	@id	@default(cuid())
-	type ChatType
-	name	String?
-
-	// serverId	String?
-	// server	Server?	@relation(fields: [serverId], references: [id])
-
-	messages Message[]
-	members ChatMember[]
-
-	@@map("chats")
-}
-
-// model Server{
-// 	id	String	@id	@default(cuid())
-// 	name	String
-
-// 	chats	Chat[]
-
-// 	@@map("servers")
-// }

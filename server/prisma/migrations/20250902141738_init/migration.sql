@@ -1,8 +1,8 @@
 -- CreateEnum
-CREATE TYPE "ChatType" AS ENUM ('PRIVATE', 'GROUP', 'CHANNEL', 'SERVER_CHAT', 'SERVER_VOICE');
+CREATE TYPE "ChatRole" AS ENUM ('OWNER', 'ADMIN', 'MEMBER');
 
 -- CreateEnum
-CREATE TYPE "ChatRole" AS ENUM ('USER', 'ADMIN', 'MODERATOR');
+CREATE TYPE "ChatType" AS ENUM ('PRIVATE', 'GROUP');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -15,6 +15,40 @@ CREATE TABLE "users" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "chats" (
+    "id" TEXT NOT NULL,
+    "name" TEXT,
+    "avatarUrl" TEXT,
+    "type" "ChatType" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "chats_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "chat-members" (
+    "id" TEXT NOT NULL,
+    "role" "ChatRole" NOT NULL,
+    "chatId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "chat-members_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "messages" (
+    "id" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "chatId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -31,34 +65,6 @@ CREATE TABLE "File" (
     CONSTRAINT "File_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "chat-members" (
-    "id" TEXT NOT NULL,
-    "role" "ChatRole" NOT NULL,
-    "chatId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-
-    CONSTRAINT "chat-members_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "messages" (
-    "id" TEXT NOT NULL,
-    "senderId" TEXT NOT NULL,
-    "chatId" TEXT NOT NULL,
-
-    CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "chats" (
-    "id" TEXT NOT NULL,
-    "type" "ChatType" NOT NULL,
-    "name" TEXT,
-
-    CONSTRAINT "chats_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 
@@ -66,10 +72,7 @@ CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- AddForeignKey
-ALTER TABLE "File" ADD CONSTRAINT "File_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "chat-members" ADD CONSTRAINT "chat-members_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "chats"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "chat-members" ADD CONSTRAINT "chat-members_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "chat-members" ADD CONSTRAINT "chat-members_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -79,3 +82,6 @@ ALTER TABLE "messages" ADD CONSTRAINT "messages_senderId_fkey" FOREIGN KEY ("sen
 
 -- AddForeignKey
 ALTER TABLE "messages" ADD CONSTRAINT "messages_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "chats"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "File" ADD CONSTRAINT "File_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

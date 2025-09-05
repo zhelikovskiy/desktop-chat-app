@@ -10,6 +10,7 @@ import { VerificationModule } from './modules/verification/verification.module';
 import { SwaggerModule } from './swagger/swagger.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
+import { ChatsModule } from './modules/chats/chats.module';
 
 @Module({
 	imports: [
@@ -22,6 +23,7 @@ import { FilesModule } from './modules/files/files.module';
 		SwaggerModule,
 		StorageModule,
 		FilesModule,
+		ChatsModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
