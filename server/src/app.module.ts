@@ -11,6 +11,7 @@ import { SwaggerModule } from './swagger/swagger.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
 import { ChatsModule } from './modules/chats/chats.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
 	imports: [
@@ -24,6 +25,7 @@ import { ChatsModule } from './modules/chats/chats.module';
 		StorageModule,
 		FilesModule,
 		ChatsModule,
+		MessagesModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

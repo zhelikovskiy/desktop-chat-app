@@ -69,16 +69,23 @@ model Message{
 	id	String	@id	@default(cuid())
 	content	String
 	
+	
 	senderId	String
 	sender	User	@relation(fields: [senderId], references: [id])
 
 	chatId	String
 	chat	Chat	@relation(fields: [chatId], references: [id])
 
+	replyToMessageId	String?
+	replyToMessage	Message?	@relation("ReplyTo", fields: [replyToMessageId], references: [id])
+
+	replies	Message[]	@relation("ReplyTo")
+
 	createdAt DateTime	@default(now())
 	updatedAt DateTime	@updatedAt
 
 	@@map("messages")
+	
 }
 
 model File {
