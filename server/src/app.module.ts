@@ -4,15 +4,14 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
-import { RedisModule } from './redis/redis.module';
+import { CacheManagerModule } from './cache-manager/cache-manager';
 import { VerificationModule } from './modules/verification/verification.module';
 import { SwaggerModule } from './swagger/swagger.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
 	imports: [
@@ -25,7 +24,7 @@ import { JwtModule } from '@nestjs/jwt';
 		UsersModule,
 		AuthModule,
 		PrismaModule,
-		RedisModule,
+		CacheManagerModule,
 		VerificationModule,
 		SwaggerModule,
 		StorageModule,

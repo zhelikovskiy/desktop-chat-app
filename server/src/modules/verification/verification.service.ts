@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailService } from 'src/mail/mail.service';
-import { RedisService } from 'src/redis/redis.service';
+import { CacheManagerService } from 'src/cache-manager/cache-manager.service';
 import { generateVerificationCode } from './utils/generate-verification-code';
 import { UserVerificationDto } from 'src/common/dto/auth/user-verification.dto';
 import { VerifyEmailDto } from 'src/common/dto/auth/verify-email.dto';
@@ -9,7 +9,7 @@ import { VerifyEmailDto } from 'src/common/dto/auth/verify-email.dto';
 export class VerificationService {
 	constructor(
 		private mailService: MailService,
-		private redisService: RedisService
+		private redisService: CacheManagerService
 	) {}
 
 	async createVerification(data: UserVerificationDto): Promise<void> {
