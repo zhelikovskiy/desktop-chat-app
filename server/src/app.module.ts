@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -12,9 +11,16 @@ import { StorageModule } from './modules/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
 	imports: [
+		ConfigModule.forRoot({
+			isGlobal: true,
+			envFilePath: [`.env.development`, `.env`],
+		}),
+
 		MailModule,
 		UsersModule,
 		AuthModule,
@@ -27,7 +33,7 @@ import { MessagesModule } from './modules/messages/messages.module';
 		ChatsModule,
 		MessagesModule,
 	],
-	controllers: [AppController],
+	controllers: [],
 	providers: [AppService],
 })
 export class AppModule {}

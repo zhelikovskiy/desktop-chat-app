@@ -6,15 +6,16 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/modules/users/users.service';
 import * as bcrypt from 'bcryptjs';
-import { jwtConstants } from './constants';
 import { IUser } from 'src/common/interfaces/user.interface';
 import { VerificationService } from 'src/modules/verification/verification.service';
 import { RegisterDto } from '../../common/dto/auth/register.dto';
 import { VerifyEmailDto } from '../../common/dto/auth/verify-email.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
 	constructor(
+		private readonly configService: ConfigService,
 		private userService: UsersService,
 		private jwtService: JwtService,
 		private verificationService: VerificationService
@@ -59,7 +60,10 @@ export class AuthService {
 		return {
 			accessToken: this.jwtService.sign(payload),
 			refreshToken: this.jwtService.sign(payload, {
-				expiresIn: jwtConstants.refreshTokenExpiresIn,
+				expiresIn: this.configService.get<string>(
+					'REFRESH_TOKEN_EXPIRES_IN',
+					{ infer: true }
+				),
 			}),
 		};
 	}
@@ -92,7 +96,10 @@ export class AuthService {
 		return {
 			accessToken: this.jwtService.sign(payload),
 			refreshToken: this.jwtService.sign(payload, {
-				expiresIn: jwtConstants.refreshTokenExpiresIn,
+				expiresIn: this.configService.get<string>(
+					'REFRESH_TOKEN_EXPIRES_IN',
+					{ infer: true }
+				),
 			}),
 		};
 	}
