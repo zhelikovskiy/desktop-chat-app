@@ -9,20 +9,20 @@ import { VerifyEmailDto } from 'src/common/dto/auth/verify-email.dto';
 export class VerificationService {
 	constructor(
 		private mailService: MailService,
-		private redisService: CacheManagerService
+		private cacheManager: CacheManagerService
 	) {}
 
 	async createVerification(data: UserVerificationDto): Promise<void> {
 		const code = generateVerificationCode();
 
-		const isExist = await this.redisService.get(
+		const isExist = await this.cacheManager.get(
 			`verify:${code}-${data.email}`
 		);
 
 		if (isExist)
-			await this.redisService.del(`verify:${code}-${data.email}`);
+			await this.cacheManager.del(`verify:${code}-${data.email}`);
 
-		await this.redisService.set(
+		await this.cacheManager.set(
 			`verify:${code}-${data.email}`,
 			data,
 			60 * 10
@@ -38,12 +38,12 @@ export class VerificationService {
 	async confirmVerification(
 		data: VerifyEmailDto
 	): Promise<UserVerificationDto | null> {
-		const stored: UserVerificationDto | null = await this.redisService.get(
+		const stored: UserVerificationDto | null = await this.cacheManager.get(
 			`verify:${data.code}-${data.email}`
 		);
 
 		if (stored) {
-			await this.redisService.del(`verify:${data.code}-${data.email}`);
+			await this.cacheManager.del(`verify:${data.code}-${data.email}`);
 			return stored;
 		}
 

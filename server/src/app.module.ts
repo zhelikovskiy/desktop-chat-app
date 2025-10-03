@@ -4,7 +4,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
-import { CacheManagerModule } from './cache-manager/cache-manager';
+import { CacheManagerModule } from './cache-manager/cache-manager.module';
 import { VerificationModule } from './modules/verification/verification.module';
 import { SwaggerModule } from './swagger/swagger.module';
 import { StorageModule } from './modules/storage/storage.module';
