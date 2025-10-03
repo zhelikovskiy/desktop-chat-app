@@ -20,7 +20,7 @@ const handleRegister = async () => {
 
 	if (response.success)
 		router.push({
-			name: 'Verify',
+			name: 'Email-Verify',
 		});
 	else errorMessage.value = response.error;
 };

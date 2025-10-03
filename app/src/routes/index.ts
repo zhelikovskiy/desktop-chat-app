@@ -21,10 +21,10 @@ const routes = [
 		name: 'Login',
 	},
 	{
-		path: '/verify',
-		component: () => import('@/views/register/CodeVerifyView.vue'),
+		path: '/email-verify',
+		component: () => import('@/views/register/EmailVerifyView.vue'),
 		meta: { requiresAuth: false },
-		name: 'Verify',
+		name: 'Email-Verify',
 	},
 ];
 
