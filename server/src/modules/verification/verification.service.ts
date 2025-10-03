@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { MailService } from 'src/mail/mail.service';
-import { CacheManagerService } from 'src/cache-manager/cache-manager.service';
+import { MailService } from 'src/shared/mail/mail.service';
+import { CacheManagerService } from 'src/shared/cache-manager/cache-manager.service';
 import { generateVerificationCode } from './utils/generate-verification-code';
 import { UserVerificationDto } from 'src/common/dto/auth/user-verification.dto';
 import { VerifyEmailDto } from 'src/common/dto/auth/verify-email.dto';

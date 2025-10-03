@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FilesController } from './files.controller';
-import { StorageModule } from 'src/modules/storage/storage.module';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { StorageModule } from 'src/shared/storage/storage.module';
+import { PrismaModule } from 'src/shared/prisma/prisma.module';
 
 @Module({
 	imports: [StorageModule, PrismaModule],

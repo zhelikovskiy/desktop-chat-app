@@ -4,7 +4,7 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import { StorageService } from '../storage.interface';
-import { s3Client } from 'src/config/minio.config';
+import { s3Client } from 'src/shared/config/minio.config';
 import {
 	DeleteObjectCommand,
 	GetObjectCommand,

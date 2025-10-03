@@ -8,8 +8,8 @@ import {
 import {
 	STORAGE_SERVICE,
 	StorageService,
-} from 'src/modules/storage/storage.interface';
-import { PrismaService } from 'src/prisma/prisma.service';
+} from 'src/shared/storage/storage.interface';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { FileCategories } from 'src/common/enums/file-categories';
 import { checkFileType } from './utils/check-file-type';
 import { equal } from 'assert';

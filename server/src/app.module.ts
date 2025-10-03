@@ -2,16 +2,17 @@ import { Module } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { MailModule } from './mail/mail.module';
-import { CacheManagerModule } from './cache-manager/cache-manager.module';
+import { PrismaModule } from './shared/prisma/prisma.module';
+import { MailModule } from './shared/mail/mail.module';
+import { CacheManagerModule } from './shared/cache-manager/cache-manager.module';
 import { VerificationModule } from './modules/verification/verification.module';
-import { SwaggerModule } from './swagger/swagger.module';
-import { StorageModule } from './modules/storage/storage.module';
+import { SwaggerModule } from './shared/swagger/swagger.module';
+import { StorageModule } from './shared/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { ConfigModule } from '@nestjs/config';
+import { RealtimeModule } from './shared/realtime/realtime.module';
 
 @Module({
 	imports: [
@@ -19,7 +20,6 @@ import { ConfigModule } from '@nestjs/config';
 			isGlobal: true,
 			envFilePath: [`.env.development`, `.env`],
 		}),
-
 		MailModule,
 		UsersModule,
 		AuthModule,
@@ -31,6 +31,7 @@ import { ConfigModule } from '@nestjs/config';
 		FilesModule,
 		ChatsModule,
 		MessagesModule,
+		RealtimeModule,
 	],
 	controllers: [],
 	providers: [AppService],
