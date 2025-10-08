@@ -7,18 +7,16 @@ export class CacheManagerService {
 	constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
 	async set<T>(key: string, value: T, ttlSeconds?: number) {
-		const data = JSON.stringify(value);
 		if (ttlSeconds) {
-			await this.cacheManager.set(key, data, ttlSeconds);
+			await this.cacheManager.set(key, value, ttlSeconds);
 		} else {
-			await this.cacheManager.set(key, data);
+			await this.cacheManager.set(key, value);
 		}
 	}
 
 	async get<T>(key: string) {
-		const data = await this.cacheManager.get(key);
-		if (!data) return null;
-		return JSON.parse(data as string) as T;
+		const data = await this.cacheManager.get<T>(key);
+		return data || null;
 	}
 
 	async del(key: string) {

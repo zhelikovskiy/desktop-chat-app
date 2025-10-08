@@ -13,6 +13,7 @@ import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { ConfigModule } from '@nestjs/config';
 import { RealtimeModule } from './shared/realtime/realtime.module';
+import { AppController } from './app.controller';
 
 @Module({
 	imports: [
@@ -33,7 +34,7 @@ import { RealtimeModule } from './shared/realtime/realtime.module';
 		MessagesModule,
 		RealtimeModule,
 	],
-	controllers: [],
+	controllers: [AppController],
 	providers: [AppService],
 })
 export class AppModule {}

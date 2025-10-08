@@ -12,7 +12,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 				const store = await redisStore({
 					host: configService.get<string>('REDIS_HOST'),
 					port: configService.get<number>('REDIS_PORT'),
-					ttl: configService.get<number>('REDIS_TTL'),
 				});
 				return {
 					store: store,

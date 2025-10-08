@@ -18,7 +18,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 				from: '"The Hearth Support" the.hearth.noreply@gmail.com',
 			},
 			template: {
-				dir: process.cwd() + '/src/mail/templates',
+				dir: process.cwd() + '/src/shared/mail/templates',
 				adapter: new HandlebarsAdapter(),
 				options: {
 					strict: true,
