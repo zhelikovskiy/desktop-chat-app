@@ -18,27 +18,17 @@ import { Request } from 'express';
 export class MessagesController {
 	constructor(private readonly messagesService: MessagesService) {}
 
-	@Get()
-	getUnreadMessages(@Body() dto: GetUnreadMessagesDto) {
-		const filter = {
-			chatId: dto.chatId,
-			id: { gt: dto.lastMessageId },
-		};
-
-		return this.messagesService.findManyByFilter(filter);
-	}
-
 	@Get('history/:chatId')
-	async getChatHistory(@Req() req: Request, @Param('chatId') chatId: string) {
+	getMessagesHistory(@Req() req: Request, @Param('chatId') chatId: string) {
 		const userId = req.user!['sub'];
 
-		return await this.messagesService.getChatHistory(userId, chatId);
+		return this.messagesService.getMessagesHistory(userId, chatId);
 	}
 
 	@Post()
 	sendNewMessage(@Req() req: Request, @Body() dto: CreateMessageDto) {
 		const userId = req.user!['sub'];
 
-		return this.messagesService.createOne(userId, dto);
+		return this.messagesService.sendNewMessage(userId, dto);
 	}
 }
