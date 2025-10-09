@@ -80,18 +80,4 @@ export class AuthController {
 	getProfile(@Req() req: Request) {
 		return req.user;
 	}
-
-	@Post('create')
-	@UseGuards(AuthGuard('jwt'))
-	async createUser(
-		@Body()
-		dto: {
-			username: string;
-			email: string;
-			password: string;
-		},
-		@Req() req: Request
-	) {
-		return this.authService.register(dto);
-	}
 }

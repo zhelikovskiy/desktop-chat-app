@@ -15,6 +15,7 @@ import { ChatType } from 'src/common/enums/chat-types';
 import { ApiCreatePrivateChatDocs } from './docs/create-private-chat.docs';
 import { ApiCreateGroupChatDocs } from './docs/create-group-chat.docs';
 import { ApiTags } from '@nestjs/swagger';
+import { MessagesService } from '../messages/messages.service';
 
 @ApiTags('Chats')
 @UseGuards(AuthGuard('jwt'))
@@ -54,7 +55,7 @@ export class ChatsController {
 		return await this.chatsService.findAllByUserId(userId);
 	}
 
-	@Delete('')
+	@Delete()
 	async deleteChat(@Req() req: Request, @Body('chatId') chatId: string) {
 		const userId = req.user!['sub'];
 

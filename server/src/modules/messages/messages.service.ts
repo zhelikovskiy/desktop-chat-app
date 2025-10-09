@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+	ForbiddenException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { CreateMessageDto } from 'src/common/dto/messages/create-message.dto';
 import { FilterMessage } from 'src/common/types/filter-message.type';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
@@ -18,12 +22,27 @@ export class MessagesService {
 		});
 	}
 
-	findManyByChatId(chatId: string) {
-		return this.prismaService.message.findMany({
-			where: { chatId },
+	async getChatHistory(userId: string, chatId: string) {
+		const isMember = await this.prismaService.chatMember.findUnique({
+			where: {
+				chatId_userId: {
+					chatId: chatId,
+					userId: userId,
+				},
+			},
+		});
+
+		if (!isMember) {
+			throw new ForbiddenException('User is not a member of this chat.');
+		}
+
+		const messages = await this.prismaService.message.findMany({
+			where: { chatId: chatId },
 			include: { replies: true },
 			orderBy: { createdAt: 'asc' },
 		});
+
+		return messages;
 	}
 
 	findManyByFilter(filter: FilterMessage) {

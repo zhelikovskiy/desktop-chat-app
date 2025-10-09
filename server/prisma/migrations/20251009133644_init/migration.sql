@@ -72,6 +72,9 @@ CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "chat-members_chatId_userId_key" ON "chat-members"("chatId", "userId");
+
 -- AddForeignKey
 ALTER TABLE "chat-members" ADD CONSTRAINT "chat-members_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

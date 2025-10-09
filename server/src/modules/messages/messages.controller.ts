@@ -1,20 +1,22 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Get,
+	Param,
+	Post,
+	Req,
+	UseGuards,
+} from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from 'src/common/dto/messages/create-message.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUnreadMessagesDto } from 'src/common/dto/messages/get-unread-messages.dto';
-import { GetAllMessagesDto } from 'src/common/dto/messages/get-all-messages.dto';
 import { Request } from 'express';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('messages')
 export class MessagesController {
 	constructor(private readonly messagesService: MessagesService) {}
-
-	@Get()
-	getAllMessages(@Body() dto: GetAllMessagesDto) {
-		return this.messagesService.findManyByChatId(dto.chatId);
-	}
 
 	@Get()
 	getUnreadMessages(@Body() dto: GetUnreadMessagesDto) {
@@ -24,6 +26,13 @@ export class MessagesController {
 		};
 
 		return this.messagesService.findManyByFilter(filter);
+	}
+
+	@Get('history/:chatId')
+	async getChatHistory(@Req() req: Request, @Param('chatId') chatId: string) {
+		const userId = req.user!['sub'];
+
+		return await this.messagesService.getChatHistory(userId, chatId);
 	}
 
 	@Post()

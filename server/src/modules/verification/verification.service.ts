@@ -47,8 +47,8 @@ export class VerificationService {
 
 	async confirmVerification(
 		data: VerifyEmailDto
-	): Promise<VerifyEmailDto | null> {
-		const stored: VerifyEmailDto | null = await this.cacheManager.get(
+	): Promise<UserVerificationDto | null> {
+		const stored: UserVerificationDto | null = await this.cacheManager.get(
 			this.generateCacheKey(data.code, data.email)
 		);
 
