@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ChatRole, ChatType } from 'generated/prisma';
 import { CreateChatDto } from 'src/common/dto/chats/create-chat.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
@@ -7,7 +7,7 @@ import { PrismaService } from 'src/shared/prisma/prisma.service';
 export class ChatsService {
 	constructor(private prismaService: PrismaService) {}
 
-	async createOne(userId: string, dto: CreateChatDto) {
+	async createNewChat(userId: string, dto: CreateChatDto) {
 		const newChat = await this.prismaService.$transaction(
 			async (prisma) => {
 				if (dto.type === ChatType.PRIVATE) {
@@ -16,18 +16,19 @@ export class ChatsService {
 					});
 
 					if (!existingUser) {
-						throw new Error('Target user does not exist');
+						throw new NotFoundException(
+							'Target user does not exist'
+						);
 					}
 
 					const existingChat = await prisma.chat.findFirst({
 						where: {
 							type: ChatType.PRIVATE,
 							members: {
-								every: {
-									userId: {
-										in: [userId, dto.targetId],
-									},
-								},
+								some: { userId: dto.targetId },
+							},
+							AND: {
+								members: { some: { userId: userId } },
 							},
 						},
 						include: { members: true },
@@ -43,7 +44,10 @@ export class ChatsService {
 							members: {
 								createMany: {
 									data: [
-										{ userId, role: ChatRole.ADMIN },
+										{
+											userId: userId,
+											role: ChatRole.ADMIN,
+										},
 										{
 											userId: dto.targetId,
 											role: ChatRole.ADMIN,
@@ -72,7 +76,7 @@ export class ChatsService {
 						include: { members: true },
 					});
 
-					return { newChat };
+					return newChat;
 				}
 			}
 		);
@@ -80,7 +84,7 @@ export class ChatsService {
 		return newChat;
 	}
 
-	async findAllByUserId(userId: string) {
+	async getUserChatsList(userId: string) {
 		return await this.prismaService.chat.findMany({
 			where: {
 				members: { some: { userId } },

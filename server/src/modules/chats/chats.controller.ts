@@ -31,7 +31,7 @@ export class ChatsController {
 	) {
 		const userId = req.user!['sub'];
 
-		return await this.chatsService.createOne(userId, {
+		return await this.chatsService.createNewChat(userId, {
 			...dto,
 			type: ChatType.PRIVATE,
 		});
@@ -42,17 +42,17 @@ export class ChatsController {
 	async createGroupChat(@Req() req: Request, @Body() dto: any) {
 		const userId = req.user!['sub'];
 
-		return await this.chatsService.createOne(userId, {
+		return await this.chatsService.createNewChat(userId, {
 			...dto,
 			type: ChatType.GROUP,
 		});
 	}
 
 	@Get()
-	async getAllUsersChats(@Req() req: Request) {
+	async getUsersChatList(@Req() req: Request) {
 		const userId = req.user!['id'];
 
-		return await this.chatsService.findAllByUserId(userId);
+		return await this.chatsService.getUserChatsList(userId);
 	}
 
 	@Delete()

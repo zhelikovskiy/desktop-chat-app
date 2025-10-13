@@ -10,7 +10,6 @@ import {
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from 'src/common/dto/messages/create-message.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUnreadMessagesDto } from 'src/common/dto/messages/get-unread-messages.dto';
 import { Request } from 'express';
 
 @UseGuards(AuthGuard('jwt'))
