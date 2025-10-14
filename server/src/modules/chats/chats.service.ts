@@ -77,6 +77,8 @@ export class ChatsService {
 					});
 
 					return newChat;
+				} else {
+					throw new NotFoundException('Chat type not supported');
 				}
 			}
 		);

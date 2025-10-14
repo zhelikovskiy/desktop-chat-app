@@ -69,6 +69,8 @@ model ChatMember {
 model Message{
 	id	String	@id	@default(cuid())
 	content	String
+	isEdited	Boolean	@default(false)
+	isDeleted	Boolean	@default(false)
 	
 	
 	senderId	String

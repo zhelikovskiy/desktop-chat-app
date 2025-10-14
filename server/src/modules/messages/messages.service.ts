@@ -4,6 +4,7 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import { CreateMessageDto } from 'src/common/dto/messages/create-message.dto';
+import { EditMessageDto } from 'src/common/dto/messages/edit-message.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 
 @Injectable()
@@ -64,6 +65,49 @@ export class MessagesService {
 		return messages;
 	}
 
-	updateOne() {}
-	removeOne() {}
+	async editMessage(messageId: string, userId: string, dto: EditMessageDto) {
+		const message = await this.prismaService.message.findUnique({
+			where: { id: messageId },
+		});
+
+		if (!message) {
+			throw new NotFoundException('Message not found.');
+		}
+
+		if (message.senderId !== userId) {
+			throw new ForbiddenException(
+				'You can only edit your own messages.'
+			);
+		}
+
+		return await this.prismaService.message.update({
+			where: { id: messageId },
+			data: {
+				content: dto.content,
+				isEdited: true,
+				updatedAt: new Date(),
+			},
+		});
+	}
+
+	async deleteMessage(messageId: string, userId: string) {
+		const message = await this.prismaService.message.findUnique({
+			where: { id: messageId },
+		});
+
+		if (!message) {
+			throw new NotFoundException('Message not found.');
+		}
+
+		if (message.senderId !== userId) {
+			throw new ForbiddenException(
+				'You can only delete your own messages.'
+			);
+		}
+
+		await this.prismaService.message.update({
+			where: { id: messageId },
+			data: { isDeleted: true },
+		});
+	}
 }
