@@ -2,11 +2,15 @@ import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import GlobalExceptionsFilter from './utils/global-exceptions.filter';
 import { SwaggerModule } from './shared/swagger/swagger.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { winstonLogger } from './shared/config/winston.config';
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create(AppModule, {
+		logger: winstonLogger,
+	});
 
 	app.useGlobalPipes(
 		new ValidationPipe({
@@ -16,7 +20,8 @@ async function bootstrap() {
 		})
 	);
 
-	app.useGlobalFilters(new GlobalExceptionsFilter());
+	app.useGlobalFilters(new HttpExceptionFilter());
+	app.useGlobalInterceptors(new ResponseInterceptor());
 
 	SwaggerModule.setup(app);
 
