@@ -44,7 +44,7 @@ export class RealtimeGateway
 	}
 
 	async handleConnection(client: Socket) {
-		const userId = (client as any).userId;
+		const userId = (client as any).user.sub;
 		console.log(`Client connected: ${client.id}, User ID: ${userId}`);
 
 		client.join(userId);
