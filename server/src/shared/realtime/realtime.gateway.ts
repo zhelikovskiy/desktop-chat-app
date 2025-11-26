@@ -3,8 +3,10 @@ import {
 	OnGatewayConnection,
 	OnGatewayDisconnect,
 	OnGatewayInit,
+	SubscribeMessage,
 	WebSocketGateway,
 	WebSocketServer,
+	ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
@@ -19,8 +21,12 @@ export class RealtimeGateway
 {
 	@WebSocketServer()
 	server: Server;
+	//rework socket Map with redis
+	sockets: Map<string, Socket[]>;
 
-	constructor(private readonly jwtService: JwtService) {}
+	constructor(private readonly jwtService: JwtService) {
+		this.sockets = new Map<string, Socket[]>();
+	}
 
 	afterInit(server: Server) {
 		server.use(async (socket: Socket, next) => {
@@ -45,17 +51,60 @@ export class RealtimeGateway
 
 	async handleConnection(client: Socket) {
 		const userId = (client as any).user.sub;
+
+		if (this.sockets.has(userId)) {
+			const existingSockets = this.sockets.get(userId);
+
+			if (!existingSockets)
+				throw new Error(
+					'Socket map error: No existing sockets found for connected user'
+				);
+
+			if (existingSockets.find((socket) => socket.id === client.id))
+				return;
+			existingSockets.push(client);
+			this.sockets.set(userId, existingSockets);
+		} else {
+			this.sockets.set(userId, [client]);
+		}
+
 		console.log(`Client connected: ${client.id}, User ID: ${userId}`);
 
 		client.join(userId);
 	}
 
 	handleDisconnect(client: Socket) {
-		const userId = (client as any).userId;
+		const userId = (client as any).user.sub;
+
+		const existingSockets = this.sockets.get(userId);
+
+		if (!existingSockets)
+			throw new Error(
+				'Socket map error: No existing sockets found for connected user'
+			);
+
+		const updatedSockets = existingSockets.filter(
+			(socket) => socket.id !== client.id
+		);
+
+		if (updatedSockets.length === 0) this.sockets.delete(userId);
+		else {
+			this.sockets.set(userId, updatedSockets);
+		}
+
 		console.log(`Client disconnected: ${client.id}, User ID: ${userId}`);
 	}
 
-	public emitMessage(chatId: string, payload: any) {
-		this.server.to(chatId).emit('new_message', payload);
+	@SubscribeMessage('get_sockets')
+	public handleGetSockets(@ConnectedSocket() client: Socket) {
+		const connectedUsers: { [userId: string]: string[] } = {};
+
+		for (const [userId, sockets] of this.sockets.entries()) {
+			connectedUsers[userId] = sockets.map((socket) => socket.id);
+		}
+
+		console.log(connectedUsers);
+
+		client.emit('sockets', JSON.stringify(connectedUsers));
 	}
 }
