@@ -6,10 +6,14 @@ import {
 import { CreateMessageDto } from 'src/common/dto/messages/create-message.dto';
 import { EditMessageDto } from 'src/common/dto/messages/edit-message.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { RealtimeGateway } from 'src/shared/realtime/realtime.gateway';
 
 @Injectable()
 export class MessagesService {
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly realtimeGateway: RealtimeGateway
+	) {}
 
 	private async verifyChatMembership(userId: string, chatId: string) {
 		const membership = await this.prismaService.chatMember.findUnique({
@@ -42,15 +46,27 @@ export class MessagesService {
 					content: dto.content,
 					replyToMessageId: dto.replyToMessageId,
 				},
+				include: {
+					sender: {
+						select: {
+							id: true,
+							username: true,
+						},
+					},
+				},
 			}),
 
+			//TODO add field 'lastMessageAt' and use instead of 'updatedAt'
 			this.prismaService.chat.update({
 				where: { id: dto.chatId },
 				data: { updatedAt: new Date() },
 			}),
 		]);
 
-		return message;
+		await this.realtimeGateway.sendNewMessageWS({
+			...message,
+			tempId: dto.tempId,
+		});
 	}
 
 	async getMessagesHistory(userId: string, chatId: string) {

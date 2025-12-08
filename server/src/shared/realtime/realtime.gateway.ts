@@ -8,6 +8,7 @@ import {
 	WebSocketServer,
 	ConnectedSocket,
 } from '@nestjs/websockets';
+import { Message } from 'generated/prisma';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
@@ -95,6 +96,12 @@ export class RealtimeGateway
 		console.log(`Client disconnected: ${client.id}, User ID: ${userId}`);
 	}
 
+	public async subscribeUsersToChat(chatId: string, usersId: string[]) {
+		usersId.forEach((id) => {
+			this.server.to(id).socketsJoin(chatId);
+		});
+	}
+
 	@SubscribeMessage('get_sockets')
 	public handleGetSockets(@ConnectedSocket() client: Socket) {
 		const connectedUsers: { [userId: string]: string[] } = {};
@@ -106,5 +113,9 @@ export class RealtimeGateway
 		console.log(connectedUsers);
 
 		client.emit('sockets', JSON.stringify(connectedUsers));
+	}
+
+	public async sendNewMessageWS(messageBody: Message & { tempId: string }) {
+		this.server.to(messageBody.chatId).emit('new_message', messageBody);
 	}
 }

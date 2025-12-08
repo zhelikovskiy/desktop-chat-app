@@ -27,10 +27,12 @@ export class MessagesController {
 	}
 
 	@Post()
-	sendNewMessage(@Req() req: Request, @Body() dto: CreateMessageDto) {
+	async sendNewMessage(@Req() req: Request, @Body() dto: CreateMessageDto) {
 		const userId = req.user!['sub'];
 
-		return this.messagesService.sendNewMessage(userId, dto);
+		await this.messagesService.sendNewMessage(userId, dto);
+
+		return { message: 'Message sent successfully' };
 	}
 
 	@Put(':messageId')
