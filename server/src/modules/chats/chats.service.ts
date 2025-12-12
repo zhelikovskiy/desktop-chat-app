@@ -46,7 +46,7 @@ export class ChatsService {
 
 		if (existingChat) {
 			return this.prismaService.$transaction(async (prisma) => {
-				const newMessage = await prisma.message.create({
+				const createdMessage = await prisma.message.create({
 					data: {
 						chatId: existingChat.id,
 						senderId: userId,
@@ -55,7 +55,7 @@ export class ChatsService {
 				});
 
 				const messageBodyResponse = {
-					...newMessage,
+					...createdMessage,
 					tempId: dto.firstMessage.tempId,
 				};
 
@@ -74,7 +74,7 @@ export class ChatsService {
 				if (!targetUser)
 					throw new NotFoundException('Target user does not exist');
 
-				const newChat = await prisma.chat.create({
+				const createdChat = await prisma.chat.create({
 					data: {
 						type: ChatType.PRIVATE,
 						members: {
@@ -91,25 +91,28 @@ export class ChatsService {
 					},
 				});
 
-				const newMessage = await prisma.message.create({
+				const createdMessage = await prisma.message.create({
 					data: {
-						chatId: newChat.id,
+						chatId: createdChat.id,
 						senderId: userId,
 						content: dto.firstMessage.content,
 					},
 				});
 
 				const messageBodyResponse = {
-					...newMessage,
+					...createdMessage,
 					tempId: dto.firstMessage.tempId,
 				};
 
 				await this.realtimeGateway.sendChatCreatedEvent(
-					newChat,
+					createdChat,
 					messageBodyResponse
 				);
 
-				return { newChat, newMessage: messageBodyResponse };
+				return {
+					newChat: createdChat,
+					newMessage: messageBodyResponse,
+				};
 			});
 		}
 	}

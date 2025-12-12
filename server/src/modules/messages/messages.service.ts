@@ -39,33 +39,38 @@ export class MessagesService {
 	async createMessage(userId: string, dto: CreateMessageDto) {
 		await this._verifyChatMembership(userId, dto.chatId);
 
-		const [message] = await this.prismaService.$transaction([
-			this.prismaService.message.create({
-				data: {
-					chatId: dto.chatId,
-					senderId: userId,
-					content: dto.content,
-					replyToMessageId: dto.replyToMessageId,
-				},
-				include: {
-					sender: {
-						select: {
-							id: true,
-							username: true,
+		const createdMessage = await this.prismaService.$transaction(
+			async (prisma) => {
+				const msg = await prisma.message.create({
+					data: {
+						chatId: dto.chatId,
+						senderId: userId,
+						content: dto.content,
+						replyToMessageId: dto.replyToMessageId,
+					},
+					include: {
+						sender: {
+							select: {
+								id: true,
+								username: true,
+							},
 						},
 					},
-				},
-			}),
+				});
 
-			//TODO add field 'lastMessageAt' and use instead of 'updatedAt'
-			this.prismaService.chat.update({
-				where: { id: dto.chatId },
-				data: { updatedAt: new Date() },
-			}),
-		]);
+				await prisma.chat.update({
+					where: { id: dto.chatId },
+					data: {
+						lastMessageId: msg.id,
+					},
+				});
+
+				return msg;
+			}
+		);
 
 		await this.realtimeGateway.sendMessageEvent({
-			...message,
+			...createdMessage,
 			tempId: dto.tempId,
 		});
 	}
