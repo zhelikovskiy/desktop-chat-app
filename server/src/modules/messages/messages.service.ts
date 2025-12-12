@@ -16,7 +16,7 @@ export class MessagesService {
 		private readonly realtimeGateway: RealtimeGateway
 	) {}
 
-	private async verifyChatMembership(userId: string, chatId: string) {
+	private async _verifyChatMembership(userId: string, chatId: string) {
 		const membership = await this.prismaService.chatMember.findUnique({
 			where: {
 				chatId_userId: {
@@ -37,7 +37,7 @@ export class MessagesService {
 	}
 
 	async createMessage(userId: string, dto: CreateMessageDto) {
-		await this.verifyChatMembership(userId, dto.chatId);
+		await this._verifyChatMembership(userId, dto.chatId);
 
 		const [message] = await this.prismaService.$transaction([
 			this.prismaService.message.create({
@@ -64,14 +64,14 @@ export class MessagesService {
 			}),
 		]);
 
-		await this.realtimeGateway.sendNewMessageWS({
+		await this.realtimeGateway.sendMessageEvent({
 			...message,
 			tempId: dto.tempId,
 		});
 	}
 
 	async getMessagesHistory(userId: string, chatId: string) {
-		this.verifyChatMembership(userId, chatId);
+		this._verifyChatMembership(userId, chatId);
 
 		const messages = await this.prismaService.message.findMany({
 			where: { chatId: chatId },

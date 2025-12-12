@@ -9,98 +9,103 @@ datasource db {
 }
 
 enum ChatRole {
-	OWNER
-	ADMIN
-	MEMBER
+  OWNER
+  ADMIN
+  MEMBER
 }
 
 enum ChatType {
-	PRIVATE
-	GROUP
+  PRIVATE
+  GROUP
 }
 
 model User {
-	id	String	@id @default(cuid())
-	username	String	@unique
-	email	String	@unique
-	password	String
-	avatarUrl	String?	@default("https://example.com/default-avatar.png")
+  id        String  @id @default(cuid())
+  username  String  @unique
+  email     String  @unique
+  password  String
+  avatarUrl String? @default("https://example.com/default-avatar.png")
 
-	chatMembers ChatMember[]
-	messages Message[]
-	files File[]
+  chatMembers ChatMember[]
+  messages    Message[]
+  files       File[]
 
-	createdAt	DateTime	@default(now())
-	updatedAt	DateTime	@updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-	@@map("users")
+  @@map("users")
 }
 
 model Chat {
-	id	String	@id	@default(cuid())
-	name	String?
-	avatarUrl	String?
+  id        String  @id @default(cuid())
+  name      String?
+  avatarUrl String?
 
-	type	ChatType
+  type ChatType
 
-	members ChatMember[]
-	messages Message[]
+  members  ChatMember[]
+  messages Message[]
 
-	createdAt	DateTime	@default(now())
-	updatedAt	DateTime	@updatedAt
+  lastMessageId String?  @unique
+  lastMessage   Message? @relation("LastMessage", fields: [lastMessageId], references: [id])
 
-	@@map("chats")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("chats")
 }
 
 model ChatMember {
-	id	String	@id	@default(cuid())
-	role ChatRole
+  id   String   @id @default(cuid())
+  role ChatRole
 
-	chatId	String
-	chat	Chat	@relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
-	userId	String
-	user	User	@relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-	@@unique([chatId, userId])
-	@@map("chat-members")
+  @@unique([chatId, userId])
+  @@map("chat-members")
 }
 
-model Message{
-	id	String	@id	@default(cuid())
-	content	String
-	isEdited	Boolean	@default(false)
-	isDeleted	Boolean	@default(false)
-	
-	
-	senderId	String
-	sender	User	@relation(fields: [senderId], references: [id])
+model Message {
+  id        String  @id @default(cuid())
+  content   String
+  isEdited  Boolean @default(false)
+  isDeleted Boolean @default(false)
 
-	chatId	String
-	chat	Chat	@relation(fields: [chatId], references: [id])
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
 
-	replyToMessageId	String?
-	replyToMessage	Message?	@relation("ReplyTo", fields: [replyToMessageId], references: [id])
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
-	replies	Message[]	@relation("ReplyTo")
+  lastMessageForChat Chat? @relation("LastMessage")
 
-	createdAt DateTime	@default(now())
-	updatedAt DateTime	@updatedAt
+  replyToMessageId String?
+  replyToMessage   Message? @relation("ReplyTo", fields: [replyToMessageId], references: [id])
 
-	@@map("messages")
-	
+  replies Message[] @relation("ReplyTo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("messages")
 }
 
 model File {
-	id	String	@id	@default(cuid())
-	name	String
-	key	String
-	size	Int
-	mimeType	String
-	url	String
+  id       String @id @default(cuid())
+  name     String
+  key      String
+  size     Int
+  mimeType String
+  url      String
 
-	userId	String
-	user	User	@relation(fields: [userId], references: [id])
-	
-	createdAt DateTime	@default(now())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("files")
 }
