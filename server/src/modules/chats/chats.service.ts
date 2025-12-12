@@ -1,89 +1,136 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { ChatRole, ChatType } from 'generated/prisma';
-import { CreateChatDto } from 'src/common/dto/chats/create-chat.dto';
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
+import { Chat, ChatRole, ChatType, Message } from 'generated/prisma';
+import { CreateGroupChatDto } from 'src/common/dto/chats/create-group-chat.dto';
+import { CreatePrivateChatDto } from 'src/common/dto/chats/create-private-chat.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { RealtimeGateway } from 'src/shared/realtime/realtime.gateway';
 
 @Injectable()
 export class ChatsService {
-	constructor(private prismaService: PrismaService) {}
+	constructor(
+		private prismaService: PrismaService,
+		private readonly realtimeGateway: RealtimeGateway
+	) {}
 
-	async createNewChat(userId: string, dto: CreateChatDto) {
-		const newChat = await this.prismaService.$transaction(
-			async (prisma) => {
-				if (dto.type === ChatType.PRIVATE) {
-					const existingUser = await prisma.user.findUnique({
-						where: { id: dto.targetId },
-					});
+	private async _isPrivateChatExist(userId: string, targetId: string) {
+		return this.prismaService.chat.findFirst({
+			where: {
+				type: ChatType.PRIVATE,
+				AND: [
+					{ members: { some: { userId } } },
+					{ members: { some: { userId: targetId } } },
+				],
+				members: {
+					every: { userId: { in: [userId, targetId] } },
+				},
+			},
+			include: { members: true },
+		});
+	}
 
-					if (!existingUser) {
-						throw new NotFoundException(
-							'Target user does not exist'
-						);
-					}
+	//TODO move work with message into separatemethod, if necessary
+	public async createPrivateChat(userId: string, dto: CreatePrivateChatDto) {
+		if (userId === dto.targetId)
+			return new BadRequestException(
+				'You cannot create a chat with yourself'
+			);
 
-					const existingChat = await prisma.chat.findFirst({
-						where: {
-							type: ChatType.PRIVATE,
-							members: {
-								some: { userId: dto.targetId },
-							},
-							AND: {
-								members: { some: { userId: userId } },
-							},
-						},
-						include: { members: true },
-					});
-
-					if (existingChat) {
-						return existingChat;
-					}
-
-					const newChat = await prisma.chat.create({
-						data: {
-							type: dto.type,
-							members: {
-								createMany: {
-									data: [
-										{
-											userId: userId,
-											role: ChatRole.ADMIN,
-										},
-										{
-											userId: dto.targetId,
-											role: ChatRole.ADMIN,
-										},
-									],
-								},
-							},
-						},
-						include: { members: true },
-					});
-
-					return newChat;
-				} else if (dto.type === ChatType.GROUP) {
-					const newChat = await prisma.chat.create({
-						data: {
-							name: dto.name,
-							type: dto.type,
-							avatarUrl: dto.avatarUrl,
-							members: {
-								create: {
-									userId,
-									role: ChatRole.ADMIN,
-								},
-							},
-						},
-						include: { members: true },
-					});
-
-					return newChat;
-				} else {
-					throw new NotFoundException('Chat type not supported');
-				}
-			}
+		const existingChat = await this._isPrivateChatExist(
+			userId,
+			dto.targetId
 		);
 
-		return newChat;
+		if (existingChat) {
+			return this.prismaService.$transaction(async (prisma) => {
+				const newMessage = await prisma.message.create({
+					data: {
+						chatId: existingChat.id,
+						senderId: userId,
+						content: dto.firstMessage.content,
+					},
+				});
+
+				const messageBodyResponse = {
+					...newMessage,
+					tempId: dto.firstMessage.tempId,
+				};
+
+				await this.realtimeGateway.sendMessageEvent(
+					messageBodyResponse
+				);
+
+				return { existingChat, newMessage: messageBodyResponse };
+			});
+		} else {
+			return this.prismaService.$transaction(async (prisma) => {
+				const targetUser = await prisma.user.findUnique({
+					where: { id: dto.targetId },
+				});
+
+				if (!targetUser)
+					throw new NotFoundException('Target user does not exist');
+
+				const newChat = await prisma.chat.create({
+					data: {
+						type: ChatType.PRIVATE,
+						members: {
+							createMany: {
+								data: [
+									{ userId, role: ChatRole.OWNER },
+									{
+										userId: dto.targetId,
+										role: ChatRole.OWNER,
+									},
+								],
+							},
+						},
+					},
+				});
+
+				const newMessage = await prisma.message.create({
+					data: {
+						chatId: newChat.id,
+						senderId: userId,
+						content: dto.firstMessage.content,
+					},
+				});
+
+				const messageBodyResponse = {
+					...newMessage,
+					tempId: dto.firstMessage.tempId,
+				};
+
+				await this.realtimeGateway.sendChatCreatedEvent(
+					newChat,
+					messageBodyResponse
+				);
+
+				return { newChat, newMessage: messageBodyResponse };
+			});
+		}
+	}
+
+	public async createGroupChat(userId: string, dto: CreateGroupChatDto) {
+		return this.prismaService.$transaction(async (prisma) => {
+			return prisma.chat.create({
+				data: {
+					name: dto.name,
+					type: ChatType.GROUP,
+					avatarUrl: dto.avatarUrl,
+					members: {
+						create: {
+							userId,
+							role: ChatRole.OWNER,
+						},
+					},
+				},
+				include: { members: true },
+			});
+		});
 	}
 
 	async getUserChatsList(userId: string) {
@@ -102,7 +149,7 @@ export class ChatsService {
 	async deleteOne(userId: string, chatId: string) {
 		const existringMembership =
 			await this.prismaService.chatMember.findFirst({
-				where: { chatId, userId, role: ChatRole.ADMIN },
+				where: { chatId, userId, role: ChatRole.OWNER },
 			});
 
 		if (!existringMembership) {

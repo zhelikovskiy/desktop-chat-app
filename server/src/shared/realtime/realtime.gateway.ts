@@ -8,7 +8,7 @@ import {
 	WebSocketServer,
 	ConnectedSocket,
 } from '@nestjs/websockets';
-import { Message } from 'generated/prisma';
+import { Chat, Message } from 'generated/prisma';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
@@ -115,7 +115,16 @@ export class RealtimeGateway
 		client.emit('sockets', JSON.stringify(connectedUsers));
 	}
 
-	public async sendNewMessageWS(messageBody: Message & { tempId: string }) {
-		this.server.to(messageBody.chatId).emit('new_message', messageBody);
+	public async sendChatCreatedEvent(
+		chatBody: Chat,
+		messageBody: Message & { tempId: string }
+	) {
+		this.server
+			.to(chatBody.id)
+			.emit('chat:created', { chatBody, messageBody });
+	}
+
+	public async sendMessageEvent(messageBody: Message & { tempId: string }) {
+		this.server.to(messageBody.chatId).emit('message:sended', messageBody);
 	}
 }

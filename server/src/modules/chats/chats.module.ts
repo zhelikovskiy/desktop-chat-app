@@ -10,4 +10,3 @@ import { PrismaModule } from 'src/shared/prisma/prisma.module';
 	exports: [ChatsService],
 })
 export class ChatsModule {}
-

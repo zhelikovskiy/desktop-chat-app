@@ -30,7 +30,7 @@ export class MessagesController {
 	async sendNewMessage(@Req() req: Request, @Body() dto: CreateMessageDto) {
 		const userId = req.user!['sub'];
 
-		await this.messagesService.sendNewMessage(userId, dto);
+		await this.messagesService.createMessage(userId, dto);
 
 		return { message: 'Message sent successfully' };
 	}

@@ -31,10 +31,7 @@ export class ChatsController {
 	) {
 		const userId = req.user!['sub'];
 
-		return await this.chatsService.createNewChat(userId, {
-			...dto,
-			type: ChatType.PRIVATE,
-		});
+		return this.chatsService.createPrivateChat(userId, dto);
 	}
 
 	@ApiCreateGroupChatDocs()
@@ -42,10 +39,7 @@ export class ChatsController {
 	async createGroupChat(@Req() req: Request, @Body() dto: any) {
 		const userId = req.user!['sub'];
 
-		return await this.chatsService.createNewChat(userId, {
-			...dto,
-			type: ChatType.GROUP,
-		});
+		return this.chatsService.createGroupChat(userId, dto);
 	}
 
 	@Get()

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateMessageDto } from 'src/common/dto/messages/create-message.dto';
 import { EditMessageDto } from 'src/common/dto/messages/edit-message.dto';
+import { PrismaTransactionClient } from 'src/common/types/prisma-transaction-client';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { RealtimeGateway } from 'src/shared/realtime/realtime.gateway';
 
@@ -35,7 +36,7 @@ export class MessagesService {
 		}
 	}
 
-	async sendNewMessage(userId: string, dto: CreateMessageDto) {
+	async createMessage(userId: string, dto: CreateMessageDto) {
 		await this.verifyChatMembership(userId, dto.chatId);
 
 		const [message] = await this.prismaService.$transaction([
