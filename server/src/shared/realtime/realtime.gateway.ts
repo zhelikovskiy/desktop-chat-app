@@ -2,7 +2,6 @@ import { JwtService } from '@nestjs/jwt';
 import {
 	OnGatewayConnection,
 	OnGatewayDisconnect,
-	OnGatewayInit,
 	SubscribeMessage,
 	WebSocketGateway,
 	WebSocketServer,
@@ -10,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Chat, Message } from 'generated/prisma';
 import { Server, Socket } from 'socket.io';
+import { CacheManagerService } from '../cache-manager/cache-manager.service';
 
 @WebSocketGateway({
 	cors: {
@@ -18,113 +18,99 @@ import { Server, Socket } from 'socket.io';
 	},
 })
 export class RealtimeGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+	implements OnGatewayConnection, OnGatewayDisconnect
 {
 	@WebSocketServer()
 	server: Server;
-	//rework socket Map with redis
-	sockets: Map<string, Socket[]>;
 
-	constructor(private readonly jwtService: JwtService) {
-		this.sockets = new Map<string, Socket[]>();
-	}
-
-	afterInit(server: Server) {
-		server.use(async (socket: Socket, next) => {
-			const token = socket.handshake.auth.token;
-
-			if (!token) {
-				return next(
-					new Error('Authentication failed: No token provided')
-				);
-			}
-
-			try {
-				const payload = await this.jwtService.verifyAsync(token);
-
-				(socket as any).user = payload;
-				next();
-			} catch (error) {
-				return next(new Error('Authentication failed: Invalid token'));
-			}
-		});
-	}
+	constructor(
+		private readonly jwtService: JwtService,
+		private readonly cacheManagerService: CacheManagerService
+	) {}
 
 	async handleConnection(client: Socket) {
-		const userId = (client as any).user.sub;
+		const token =
+			client.handshake.auth?.token ||
+			client.handshake.headers.authorization;
+		const user = await this.jwtService.verifyAsync(token);
 
-		if (this.sockets.has(userId)) {
-			const existingSockets = this.sockets.get(userId);
-
-			if (!existingSockets)
-				throw new Error(
-					'Socket map error: No existing sockets found for connected user'
-				);
-
-			if (existingSockets.find((socket) => socket.id === client.id))
-				return;
-			existingSockets.push(client);
-			this.sockets.set(userId, existingSockets);
-		} else {
-			this.sockets.set(userId, [client]);
+		if (!user) {
+			client.disconnect(true);
+			return;
 		}
 
-		console.log(`Client connected: ${client.id}, User ID: ${userId}`);
+		client.data.userId = user.sub;
 
-		client.join(userId);
+		this.cacheManagerService.addSocket(user.sub, client.id);
+
+		client.join(`user:${user.sub}`);
+
+		console.log(`Client connected: ${client.id}, User ID: ${user.sub}`);
 	}
 
 	handleDisconnect(client: Socket) {
 		const userId = (client as any).user.sub;
 
-		const existingSockets = this.sockets.get(userId);
-
-		if (!existingSockets)
-			throw new Error(
-				'Socket map error: No existing sockets found for connected user'
-			);
-
-		const updatedSockets = existingSockets.filter(
-			(socket) => socket.id !== client.id
-		);
-
-		if (updatedSockets.length === 0) this.sockets.delete(userId);
-		else {
-			this.sockets.set(userId, updatedSockets);
-		}
+		this.cacheManagerService.removeSocket(userId, client.id);
 
 		console.log(`Client disconnected: ${client.id}, User ID: ${userId}`);
 	}
 
-	public async subscribeUsersToChat(chatId: string, usersId: string[]) {
-		usersId.forEach((id) => {
-			this.server.to(id).socketsJoin(chatId);
-		});
+	@SubscribeMessage('chat_opened')
+	private async handleChatOpened(
+		@ConnectedSocket() client: Socket,
+		data: { chatId: string }
+	) {
+		client.join(`chat:${data.chatId}`);
 	}
 
-	@SubscribeMessage('get_sockets')
-	public handleGetSockets(@ConnectedSocket() client: Socket) {
-		const connectedUsers: { [userId: string]: string[] } = {};
-
-		for (const [userId, sockets] of this.sockets.entries()) {
-			connectedUsers[userId] = sockets.map((socket) => socket.id);
-		}
-
-		console.log(connectedUsers);
-
-		client.emit('sockets', JSON.stringify(connectedUsers));
+	@SubscribeMessage('chat_closed')
+	private async handleChatClosed(
+		@ConnectedSocket() client: Socket,
+		data: { chatId: string }
+	) {
+		client.leave(`chat:${data.chatId}`);
 	}
 
 	public async sendChatCreatedEvent(
+		chatId: string,
 		chatBody: Chat,
 		messageBody: Message & { tempId: string }
 	) {
 		this.server
 			.to(chatBody.id)
 			.emit('chat:created', { chatBody, messageBody });
+
+		this.server
+			.to(`user:${chatBody}`)
+			.emit('chat:created', { chatBody, messageBody });
 	}
 
-	public async sendMessageEvent(messageBody: Message & { tempId: string }) {
-		this.server.to(messageBody.chatId).emit('message:sended', messageBody);
-	}
+	// public async sendMessageEvent(messageBody: Message & { tempId: string }) {
+	// 	this.server
+	// 		.to(`chat:${messageBody.chatId}`)
+	// 		.emit('message:sended', messageBody);
+
+	// 	const socketsInRoom = await this.server
+	// 		.in(`chat:${messageBody.chatId}`)
+	// 		.fetchSockets();
+
+	// 	const preview =
+	// 		typeof messageBody.content === 'string'
+	// 			? messageBody.content.slice(0, 120)
+	// 			: '';
+
+	// 	const notifyPayload = {
+	// 		messageId: messageBody.id,
+	// 		chatId: messageBody.chatId,
+	// 		senderId: messageBody.senderId,
+	// 		createdAt: messageBody.createdAt,
+	// 		tempId: messageBody.tempId,
+	// 		preview,
+	// 	};
+
+	// 	for(const userId OF )
+
+	// 	this.server.to(messageBody.chatId).emit('message:sended', messageBody);
+	// }
 }
