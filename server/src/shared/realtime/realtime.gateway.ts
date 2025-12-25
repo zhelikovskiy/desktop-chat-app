@@ -49,7 +49,7 @@ export class RealtimeGateway
 	}
 
 	handleDisconnect(client: Socket) {
-		const userId = (client as any).user.sub;
+		const userId = client.data.userId;
 
 		this.cacheManagerService.removeSocket(userId, client.id);
 
@@ -72,45 +72,43 @@ export class RealtimeGateway
 		client.leave(`chat:${data.chatId}`);
 	}
 
-	public async sendChatCreatedEvent(
-		chatId: string,
+	public async sendPrivateChatCreatedEvent(
+		targetUserId: string,
 		chatBody: Chat,
 		messageBody: Message & { tempId: string }
 	) {
 		this.server
-			.to(chatBody.id)
-			.emit('chat:created', { chatBody, messageBody });
-
-		this.server
-			.to(`user:${chatBody}`)
+			.to(`user:${targetUserId}`)
 			.emit('chat:created', { chatBody, messageBody });
 	}
 
-	// public async sendMessageEvent(messageBody: Message & { tempId: string }) {
-	// 	this.server
-	// 		.to(`chat:${messageBody.chatId}`)
-	// 		.emit('message:sended', messageBody);
+	public async sendMessageEvent(
+		messageBody: Message & { tempId: string },
+		participants: string[]
+	) {
+		const chatRoom = `chat:${messageBody.chatId}`;
 
-	// 	const socketsInRoom = await this.server
-	// 		.in(`chat:${messageBody.chatId}`)
-	// 		.fetchSockets();
+		this.server.to(chatRoom).emit('message:received', messageBody);
 
-	// 	const preview =
-	// 		typeof messageBody.content === 'string'
-	// 			? messageBody.content.slice(0, 120)
-	// 			: '';
+		for (const userId of participants) {
+			if (userId !== messageBody.senderId) {
+				const socketsInChat = await this.server
+					.in(chatRoom)
+					.fetchSockets();
+				const isUserInChat = socketsInChat.some(
+					(s) => s.data.userId === userId
+				);
 
-	// 	const notifyPayload = {
-	// 		messageId: messageBody.id,
-	// 		chatId: messageBody.chatId,
-	// 		senderId: messageBody.senderId,
-	// 		createdAt: messageBody.createdAt,
-	// 		tempId: messageBody.tempId,
-	// 		preview,
-	// 	};
-
-	// 	for(const userId OF )
-
-	// 	this.server.to(messageBody.chatId).emit('message:sended', messageBody);
-	// }
+				if (!isUserInChat) {
+					this.server
+						.to(`user:${userId}`)
+						.emit('notification:new_message', {
+							chatId: messageBody.chatId,
+							preview: messageBody.content.slice(0, 50),
+							messageId: messageBody.id,
+						});
+				}
+			}
+		}
+	}
 }
