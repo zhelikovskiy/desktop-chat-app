@@ -10,6 +10,8 @@ import {
 import { Chat, Message } from 'generated/prisma';
 import { Server, Socket } from 'socket.io';
 import { CacheManagerService } from '../cache-manager/cache-manager.service';
+import { SERVER_WS_EVENTS } from 'src/common/ws-events/ws-events.server';
+import { CLIENT_WS_EVENTS } from 'src/common/ws-events/ws-events.client';
 
 @WebSocketGateway({
 	cors: {
@@ -56,7 +58,7 @@ export class RealtimeGateway
 		console.log(`Client disconnected: ${client.id}, User ID: ${userId}`);
 	}
 
-	@SubscribeMessage('chat_opened')
+	@SubscribeMessage(CLIENT_WS_EVENTS.CHAT.OPENED)
 	private async handleChatOpened(
 		@ConnectedSocket() client: Socket,
 		data: { chatId: string }
@@ -64,7 +66,7 @@ export class RealtimeGateway
 		client.join(`chat:${data.chatId}`);
 	}
 
-	@SubscribeMessage('chat_closed')
+	@SubscribeMessage(CLIENT_WS_EVENTS.CHAT.CLOSED)
 	private async handleChatClosed(
 		@ConnectedSocket() client: Socket,
 		data: { chatId: string }
@@ -79,7 +81,10 @@ export class RealtimeGateway
 	) {
 		this.server
 			.to(`user:${targetUserId}`)
-			.emit('chat:created', { chatBody, messageBody });
+			.emit(
+				SERVER_WS_EVENTS.NOTIFICATION.CHAT_CREATED,
+				JSON.stringify({ chatBody, messageBody })
+			);
 	}
 
 	public async sendMessageEvent(
@@ -88,7 +93,12 @@ export class RealtimeGateway
 	) {
 		const chatRoom = `chat:${messageBody.chatId}`;
 
-		this.server.to(chatRoom).emit('message:received', messageBody);
+		this.server
+			.to(chatRoom)
+			.emit(
+				SERVER_WS_EVENTS.MESSAGE.RECEIVED,
+				JSON.stringify(messageBody)
+			);
 
 		for (const userId of participants) {
 			if (userId !== messageBody.senderId) {
@@ -100,13 +110,14 @@ export class RealtimeGateway
 				);
 
 				if (!isUserInChat) {
-					this.server
-						.to(`user:${userId}`)
-						.emit('notification:new_message', {
+					this.server.to(`user:${userId}`).emit(
+						SERVER_WS_EVENTS.NOTIFICATION.NEW_MESSAGE,
+						JSON.stringify({
 							chatId: messageBody.chatId,
 							preview: messageBody.content.slice(0, 50),
 							messageId: messageBody.id,
-						});
+						})
+					);
 				}
 			}
 		}

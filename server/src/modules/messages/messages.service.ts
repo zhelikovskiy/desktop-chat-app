@@ -69,10 +69,22 @@ export class MessagesService {
 			}
 		);
 
-		await this.realtimeGateway.sendMessageEvent({
-			...createdMessage,
-			tempId: dto.tempId,
+		const chatMembersId = await this.prismaService.chatMember.findMany({
+			where: { chatId: dto.chatId },
+			select: { userId: true },
 		});
+
+		const filteredMemberIds = chatMembersId
+			.map((member) => member.userId)
+			.filter((id) => id !== userId);
+
+		await this.realtimeGateway.sendMessageEvent(
+			{
+				...createdMessage,
+				tempId: dto.tempId,
+			},
+			filteredMemberIds
+		);
 	}
 
 	async getMessagesHistory(userId: string, chatId: string) {

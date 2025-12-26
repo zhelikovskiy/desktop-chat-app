@@ -60,7 +60,8 @@ export class ChatsService {
 				};
 
 				await this.realtimeGateway.sendMessageEvent(
-					messageBodyResponse
+					messageBodyResponse,
+					[dto.targetId]
 				);
 
 				return { existingChat, newMessage: messageBodyResponse };
@@ -104,7 +105,8 @@ export class ChatsService {
 					tempId: dto.firstMessage.tempId,
 				};
 
-				await this.realtimeGateway.sendChatCreatedEvent(
+				await this.realtimeGateway.sendPrivateChatCreatedEvent(
+					dto.targetId,
 					createdChat,
 					messageBodyResponse
 				);
